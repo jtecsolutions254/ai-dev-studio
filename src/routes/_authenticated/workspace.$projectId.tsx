@@ -235,6 +235,8 @@ function Workspace() {
 
   const [newPath, setNewPath] = useState("");
   const [showNew, setShowNew] = useState(false);
+  const [rightTab, setRightTab] = useState<"preview" | "code">("preview");
+  const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
 
   const preview = useMemo(() => buildPreview(files), [files]);
   const [previewKey, setPreviewKey] = useState(0);
