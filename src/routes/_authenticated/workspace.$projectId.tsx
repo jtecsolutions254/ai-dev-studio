@@ -541,45 +541,14 @@ function Workspace() {
         </section>
 
         {/* Preview */}
-        <section className="w-[440px] border-l border-border bg-surface flex flex-col shrink-0">
-          <div className="h-11 border-b border-border flex items-center justify-between px-4 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className={`size-2 rounded-full ${lastError ? "bg-destructive" : "bg-signal"}`} />
-              <span className="text-xs font-medium font-mono">live preview</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {lastError && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 text-[10px] gap-1 text-destructive"
-                  onClick={autoFix}
-                  disabled={chat.isPending}
-                >
-                  <Bug className="size-3" /> Fix
-                </Button>
-              )}
-              <button
-                className="size-6 rounded hover:bg-white/5 flex items-center justify-center text-muted-foreground"
-                onClick={() => setPreviewKey((k) => k + 1)}
-                aria-label="Reload preview"
-              >
-                <RefreshCw className="size-3.5" />
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 p-3">
-            <div className="w-full h-full bg-background rounded-lg outline-1 -outline-offset-1 outline-white/5 overflow-hidden">
-              <iframe
-                key={previewKey}
-                title="preview"
-                srcDoc={preview}
-                sandbox="allow-scripts allow-forms allow-modals allow-popups"
-                className="w-full h-full border-0 bg-white"
-              />
-            </div>
-          </div>
-        </section>
+        <PreviewPanel
+          preview={preview}
+          previewKey={previewKey}
+          reload={() => setPreviewKey((k) => k + 1)}
+          lastError={lastError}
+          onFix={autoFix}
+          fixing={chat.isPending}
+        />
       </main>
 
       {/* AI Chat dock */}
