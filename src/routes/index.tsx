@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Cpu, FileCode2, MessageSquare, Sparkles, Terminal, Zap } from "lucide-react";
+import { LuminaWordmark } from "@/components/brand";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -32,10 +33,7 @@ function Nav() {
     <nav className="sticky top-0 z-50 border-b border-border bg-background/70 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2">
-          <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
-            <div className="size-2 rounded-full bg-background" />
-          </div>
-          <span className="text-sm font-semibold tracking-tight">Lumina AI</span>
+          <LuminaWordmark />
         </Link>
         <div className="hidden md:flex items-center gap-6 text-xs font-medium text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>

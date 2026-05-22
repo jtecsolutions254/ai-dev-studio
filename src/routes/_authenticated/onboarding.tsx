@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, Loader2, Sparkles, Check } from "lucide-react";
 import { toast } from "sonner";
+import { LuminaWordmark } from "@/components/brand";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
@@ -54,10 +55,7 @@ function Onboarding() {
     <div className="min-h-screen bg-background">
       <header className="h-12 border-b border-border bg-surface/50 backdrop-blur-md flex items-center justify-between px-4">
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
-            <div className="size-2 rounded-full bg-background" />
-          </div>
-          <span className="text-sm font-semibold tracking-tight">Lumina AI</span>
+          <LuminaWordmark />
           <span className="text-xs text-muted-foreground ml-2 font-mono">/ onboarding</span>
         </Link>
         <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground">

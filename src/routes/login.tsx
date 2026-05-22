@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { lovable } from "@/integrations/lovable";
+import { LuminaWordmark } from "@/components/brand";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -74,10 +75,7 @@ function LoginPage() {
         />
         <div className="relative z-10 p-12 flex flex-col justify-between w-full">
           <Link to="/" className="flex items-center gap-2">
-            <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
-              <div className="size-2 rounded-full bg-background" />
-            </div>
-            <span className="text-sm font-semibold">Lumina AI</span>
+            <LuminaWordmark />
           </Link>
           <div>
             <h2 className="text-4xl font-semibold tracking-tight max-w-md leading-tight">

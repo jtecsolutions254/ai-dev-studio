@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import JSZip from "jszip";
 import {
+import { LuminaWordmark } from "@/components/brand";
   getProject,
   saveFile,
   deleteFile as deleteFileFn,
@@ -306,10 +307,7 @@ function Workspace() {
             <ArrowLeft className="size-4" />
           </Button>
           <Link to="/" className="flex items-center gap-2">
-            <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
-              <div className="size-2 rounded-full bg-background" />
-            </div>
-            <span className="text-sm font-semibold tracking-tight">Lumina AI</span>
+            <LuminaWordmark />
           </Link>
           <div className="h-4 w-px bg-border" />
           <span className="text-xs font-medium truncate">{data.project.name}</span>
