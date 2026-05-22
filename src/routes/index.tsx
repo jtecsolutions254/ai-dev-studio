@@ -111,7 +111,7 @@ function Hero() {
               <div className="size-2.5 rounded-full bg-signal/70" />
             </div>
             <span className="ml-3 text-[11px] font-mono text-muted-foreground">
-              syntax.os / workspace / quantum-bridge-v2
+              lumina-ai / workspace / quantum-bridge-v2
             </span>
           </div>
           <div className="grid grid-cols-12 h-[360px]">
