@@ -125,8 +125,8 @@ export const sendChat = createServerFn({ method: "POST" })
     const changes: { action: "write" | "delete"; path: string }[] = [];
     let finalText = "";
 
-    // Up to 4 tool-call rounds
-    for (let round = 0; round < 4; round++) {
+    // Up to 8 tool-call rounds so the AI can build full multi-file projects in one turn
+    for (let round = 0; round < 8; round++) {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
