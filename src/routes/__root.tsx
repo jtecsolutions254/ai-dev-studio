@@ -69,22 +69,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SYNTAX.OS — AI Software Engineering Platform" },
+      { title: "Lumina AI — Intellect. Illuminated." },
       {
         name: "description",
         content:
           "An AI-native operating system for software engineering. Describe an app, get a live working codebase.",
       },
-      { name: "author", content: "SYNTAX.OS" },
-      { property: "og:title", content: "SYNTAX.OS — AI Software Engineering Platform" },
+      { name: "author", content: "Lumina AI" },
+      { property: "og:title", content: "Lumina AI — Intellect. Illuminated." },
       {
         property: "og:description",
         content: "Generate, edit, preview, and ship apps from a single AI workspace.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/lumina-social.png" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "/lumina-social.png" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
@@ -93,6 +96,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
       },
     ],
+
   }),
   shellComponent: RootShell,
   component: RootComponent,

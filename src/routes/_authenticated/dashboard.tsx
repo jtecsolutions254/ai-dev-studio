@@ -10,12 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { LuminaWordmark } from "@/components/brand";
+
 import { LogOut, Plus, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
-  head: () => ({ meta: [{ title: "Workspace — SYNTAX.OS" }] }),
+  head: () => ({ meta: [{ title: "Workspace — Lumina AI" }] }),
 });
 
 function Dashboard() {
@@ -57,10 +59,7 @@ function Dashboard() {
     <div className="min-h-screen bg-background">
       <header className="h-12 border-b border-border bg-surface/50 backdrop-blur-md flex items-center justify-between px-4 sticky top-0 z-30">
         <Link to="/" className="flex items-center gap-2">
-          <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
-            <div className="size-2 rounded-full bg-background" />
-          </div>
-          <span className="text-sm font-semibold tracking-tight">SYNTAX.OS</span>
+          <LuminaWordmark />
           <span className="text-xs text-muted-foreground ml-2 font-mono">/ workspace</span>
         </Link>
         <Button variant="ghost" size="sm" onClick={signOut}>

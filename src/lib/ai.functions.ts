@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const SYSTEM_PROMPT = `You are SYNTAX.OS, an autonomous senior software engineer.
+const SYSTEM_PROMPT = `You are Lumina AI, an autonomous senior software engineer.
 You generate REAL, complete, working web applications — never placeholder demos.
 
 ## Execution environment

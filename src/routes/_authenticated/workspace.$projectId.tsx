@@ -9,10 +9,17 @@ import {
   saveFile,
   deleteFile as deleteFileFn,
 } from "@/lib/projects.functions";
+import { LuminaWordmark } from "@/components/brand";
+
 import { sendChat } from "@/lib/ai.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Bug, Code2, Download, Eye, FileCode2, FilePlus2, Loader2, Monitor,
@@ -20,9 +27,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+
 export const Route = createFileRoute("/_authenticated/workspace/$projectId")({
   component: Workspace,
-  head: () => ({ meta: [{ title: "Workspace — SYNTAX.OS" }] }),
+  head: () => ({ meta: [{ title: "Workspace — Lumina AI" }] }),
 });
 
 type FileRow = { id: string; path: string; content: string; updated_at: string };
@@ -131,7 +139,7 @@ async function downloadProjectZip(name: string, files: FileRow[]) {
   for (const f of files) zip.file(f.path, f.content);
   zip.file(
     "README.md",
-    `# ${name}\n\nExported from SYNTAX.OS. Open \`index.html\` in a browser to run.\n`,
+    `# ${name}\n\nExported from Lumina AI. Open \`index.html\` in a browser to run.\n`,
   );
   const blob = await zip.generateAsync({ type: "blob" });
   const url = URL.createObjectURL(blob);
@@ -306,10 +314,7 @@ function Workspace() {
             <ArrowLeft className="size-4" />
           </Button>
           <Link to="/" className="flex items-center gap-2">
-            <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
-              <div className="size-2 rounded-full bg-background" />
-            </div>
-            <span className="text-sm font-semibold tracking-tight">SYNTAX.OS</span>
+            <LuminaWordmark />
           </Link>
           <div className="h-4 w-px bg-border" />
           <span className="text-xs font-medium truncate">{data.project.name}</span>
@@ -336,17 +341,20 @@ function Workspace() {
         </div>
       </nav>
 
-      {/* Main: Lovable-style two-pane — chat left, preview/code right */}
-      <main className="flex-1 flex overflow-hidden">
+      {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
+      <main className="flex-1 overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full w-full">
+        <ResizablePanel defaultSize={28} minSize={18} maxSize={50} className="min-w-0">
         {/* LEFT — Chat */}
-        <aside className="w-[420px] shrink-0 border-r border-border bg-surface flex flex-col min-h-0">
+        <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0">
+
           <div className="p-3 border-b border-border flex items-center justify-between bg-white/5 shrink-0">
             <div className="flex items-center gap-2">
               <div className="size-6 rounded-full bg-accent flex items-center justify-center">
                 <Sparkles className="size-3 text-accent-foreground" />
               </div>
               <div>
-                <div className="text-xs font-semibold leading-tight">Neural Architect</div>
+                <div className="text-xs font-semibold leading-tight">Lumina Architect</div>
                 <div className="text-[10px] text-accent font-mono">
                   {chat.isPending ? "building…" : "ready"}
                 </div>
@@ -409,7 +417,7 @@ function Workspace() {
           <div className="p-3 bg-background/50 border-t border-border shrink-0">
             <div className="relative">
               <Textarea
-                placeholder="Ask SYNTAX to build or modify…  (⌘/Ctrl+Enter to send)"
+                placeholder="Ask Lumina to build or modify…  (⌘/Ctrl+Enter to send)"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 rows={3}
@@ -443,9 +451,12 @@ function Workspace() {
             </div>
           </div>
         </aside>
-
+        </ResizablePanel>
+        <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
+        <ResizablePanel defaultSize={72} minSize={40} className="min-w-0">
         {/* RIGHT — Preview / Code tabs */}
-        <section className="flex-1 flex flex-col min-w-0 bg-background">
+        <section className="h-full flex flex-col min-w-0 bg-background">
+
           <div className="h-11 border-b border-border flex items-center justify-between px-3 bg-surface/30 shrink-0">
             <div className="flex items-center gap-1 bg-black/30 rounded-md border border-border p-0.5">
               <button
@@ -654,7 +665,10 @@ function Workspace() {
             </div>
           )}
         </section>
+        </ResizablePanel>
+        </ResizablePanelGroup>
       </main>
+
     </div>
   );
 }

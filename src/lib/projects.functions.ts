@@ -17,7 +17,7 @@ const DEFAULT_INDEX = `<!doctype html>
 </head>
 <body>
   <div class="card">
-    <h1>Hello from SYNTAX.OS</h1>
+    <h1>Hello from Lumina AI</h1>
     <p>Ask the AI engineer to build something.</p>
   </div>
 </body>
