@@ -12,7 +12,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
-  head: () => ({ meta: [{ title: "Welcome — SYNTAX.OS" }] }),
+  head: () => ({ meta: [{ title: "Welcome — Lumina AI" }] }),
 });
 
 const TEMPLATES = [
@@ -57,7 +57,7 @@ function Onboarding() {
           <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
             <div className="size-2 rounded-full bg-background" />
           </div>
-          <span className="text-sm font-semibold tracking-tight">SYNTAX.OS</span>
+          <span className="text-sm font-semibold tracking-tight">Lumina AI</span>
           <span className="text-xs text-muted-foreground ml-2 font-mono">/ onboarding</span>
         </Link>
         <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground">
@@ -77,7 +77,7 @@ function Onboarding() {
           <section>
             <div className="flex items-center gap-2">
               <Sparkles className="size-5 text-accent" />
-              <h1 className="text-3xl font-semibold tracking-tight">Welcome to SYNTAX.OS</h1>
+              <h1 className="text-3xl font-semibold tracking-tight">Welcome to Lumina AI</h1>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
               Let's spin up your first workspace. Pick a starting point — you can change everything later.

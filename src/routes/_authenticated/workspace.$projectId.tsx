@@ -22,7 +22,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/workspace/$projectId")({
   component: Workspace,
-  head: () => ({ meta: [{ title: "Workspace — SYNTAX.OS" }] }),
+  head: () => ({ meta: [{ title: "Workspace — Lumina AI" }] }),
 });
 
 type FileRow = { id: string; path: string; content: string; updated_at: string };
@@ -131,7 +131,7 @@ async function downloadProjectZip(name: string, files: FileRow[]) {
   for (const f of files) zip.file(f.path, f.content);
   zip.file(
     "README.md",
-    `# ${name}\n\nExported from SYNTAX.OS. Open \`index.html\` in a browser to run.\n`,
+    `# ${name}\n\nExported from Lumina AI. Open \`index.html\` in a browser to run.\n`,
   );
   const blob = await zip.generateAsync({ type: "blob" });
   const url = URL.createObjectURL(blob);
@@ -309,7 +309,7 @@ function Workspace() {
             <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
               <div className="size-2 rounded-full bg-background" />
             </div>
-            <span className="text-sm font-semibold tracking-tight">SYNTAX.OS</span>
+            <span className="text-sm font-semibold tracking-tight">Lumina AI</span>
           </Link>
           <div className="h-4 w-px bg-border" />
           <span className="text-xs font-medium truncate">{data.project.name}</span>
@@ -346,7 +346,7 @@ function Workspace() {
                 <Sparkles className="size-3 text-accent-foreground" />
               </div>
               <div>
-                <div className="text-xs font-semibold leading-tight">Neural Architect</div>
+                <div className="text-xs font-semibold leading-tight">Lumina Architect</div>
                 <div className="text-[10px] text-accent font-mono">
                   {chat.isPending ? "building…" : "ready"}
                 </div>
@@ -409,7 +409,7 @@ function Workspace() {
           <div className="p-3 bg-background/50 border-t border-border shrink-0">
             <div className="relative">
               <Textarea
-                placeholder="Ask SYNTAX to build or modify…  (⌘/Ctrl+Enter to send)"
+                placeholder="Ask Lumina to build or modify…  (⌘/Ctrl+Enter to send)"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 rows={3}

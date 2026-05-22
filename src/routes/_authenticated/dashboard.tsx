@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
-  head: () => ({ meta: [{ title: "Workspace — SYNTAX.OS" }] }),
+  head: () => ({ meta: [{ title: "Workspace — Lumina AI" }] }),
 });
 
 function Dashboard() {
@@ -60,7 +60,7 @@ function Dashboard() {
           <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
             <div className="size-2 rounded-full bg-background" />
           </div>
-          <span className="text-sm font-semibold tracking-tight">SYNTAX.OS</span>
+          <span className="text-sm font-semibold tracking-tight">Lumina AI</span>
           <span className="text-xs text-muted-foreground ml-2 font-mono">/ workspace</span>
         </Link>
         <Button variant="ghost" size="sm" onClick={signOut}>

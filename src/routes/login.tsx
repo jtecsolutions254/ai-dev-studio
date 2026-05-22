@@ -10,7 +10,7 @@ import { lovable } from "@/integrations/lovable";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
-  head: () => ({ meta: [{ title: "Sign in — SYNTAX.OS" }] }),
+  head: () => ({ meta: [{ title: "Sign in — Lumina AI" }] }),
 });
 
 function LoginPage() {
@@ -77,7 +77,7 @@ function LoginPage() {
             <div className="size-5 rounded-sm bg-accent flex items-center justify-center">
               <div className="size-2 rounded-full bg-background" />
             </div>
-            <span className="text-sm font-semibold">SYNTAX.OS</span>
+            <span className="text-sm font-semibold">Lumina AI</span>
           </Link>
           <div>
             <h2 className="text-4xl font-semibold tracking-tight max-w-md leading-tight">
