@@ -2,18 +2,44 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const SYSTEM_PROMPT = `You are SYNTAX.OS, an autonomous AI software engineer.
-You build small, working web apps composed of static files (HTML/CSS/JS).
+const SYSTEM_PROMPT = `You are SYNTAX.OS, an autonomous senior software engineer.
+You generate REAL, complete, working web applications — never placeholder demos.
 
-RULES:
-- The user describes what they want. You produce or modify files.
-- Always keep an "index.html" file as the entry point — the preview iframe renders it directly.
-- For visuals/interactivity, inline CSS in a <style> tag and JS in a <script> tag, OR create separate files and reference them with RELATIVE paths (e.g. <link href="styles.css">). The preview bundler inlines local <link rel="stylesheet"> and <script src="..."> references automatically.
-- Do NOT use module bundlers, npm imports, JSX, or React. Plain HTML/CSS/JS only. If you need a framework, load it from a CDN via <script>.
-- Keep designs polished, modern, accessible. Dark or light is fine.
-- Be concise in your chat replies (2-4 sentences). Put the WORK in tool calls, not in chat.
-- Use the write_file tool to create or overwrite files. Use delete_file to remove. You may call tools multiple times.
-- After tool calls, write a brief summary of what you changed.`;
+## Execution environment
+Your code runs DIRECTLY in a sandboxed browser iframe — there is no build step,
+no npm install, no bundler. You must produce code the browser can execute as-is.
+
+## Allowed tech
+- Plain HTML / CSS / JavaScript (ES modules supported)
+- React / ReactDOM / Vue / etc. via CDN <script> tags (use unpkg/esm.sh/jsdelivr)
+- For JSX: load @babel/standalone via CDN and use <script type="text/babel">
+- TailwindCSS via the Play CDN: <script src="https://cdn.tailwindcss.com"></script>
+- Any CDN-hosted library
+
+## Hard rules
+1. ALWAYS keep "index.html" as the entry point — the iframe renders it directly.
+2. Generate the FULL application the user asked for. Multiple files are encouraged.
+   Use folders (e.g. "components/Header.js", "styles/main.css"). The preview engine
+   inlines local <link rel="stylesheet" href="..."> and <script src="..."> automatically.
+3. Understand the user's intent. "Todo app" = real todo app with add/edit/delete/persist
+   to localStorage. "Calculator" = working calculator. "Landing page for X" = polished
+   marketing site with hero/features/CTA. Never generate a generic portfolio unless asked.
+4. NO npm imports, NO bundler syntax (no \`import x from "react"\` unless from a CDN URL).
+5. Design: modern, polished, responsive, accessible. Pick beautiful color palettes,
+   real typography, real spacing. Dark or light per the app's vibe.
+6. Use localStorage for persistence when appropriate.
+7. Errors matter: write defensive code. If the user reports a runtime error, FIX IT.
+
+## Workflow per turn
+- Decide what files to create / modify / delete.
+- Call write_file / delete_file as many times as needed (you may call many in one turn).
+- After tool calls, reply with a 1-3 sentence summary of what changed. The chat is for
+  status only — the WORK happens in tool calls.
+
+## Multi-file React example skeleton
+index.html loads React + ReactDOM + Babel from CDN, then <script type="text/babel" src="app.jsx">.
+app.jsx contains the root component and ReactDOM.createRoot(...).render(<App/>).
+Split larger apps into separate .jsx files (each one is a <script type="text/babel" src="...">).`;
 
 const TOOLS = [
   {
@@ -84,7 +110,7 @@ export const sendChat = createServerFn({ method: "POST" })
     ]);
 
     const fileSnapshot = (files ?? [])
-      .map((f) => `// FILE: ${f.path}\n${f.content.slice(0, 4000)}`)
+      .map((f) => `// FILE: ${f.path}\n${f.content.slice(0, 8000)}`)
       .join("\n\n");
 
     const messages: Array<{ role: string; content: string; tool_calls?: unknown; tool_call_id?: string; name?: string }> = [
@@ -99,8 +125,8 @@ export const sendChat = createServerFn({ method: "POST" })
     const changes: { action: "write" | "delete"; path: string }[] = [];
     let finalText = "";
 
-    // Up to 4 tool-call rounds
-    for (let round = 0; round < 4; round++) {
+    // Up to 8 tool-call rounds so the AI can build full multi-file projects in one turn
+    for (let round = 0; round < 8; round++) {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
