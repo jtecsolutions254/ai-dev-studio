@@ -15,8 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft, Bug, Download, FileCode2, FilePlus2, Loader2, Play,
-  RefreshCw, Send, Sparkles, Trash2, Zap,
+  ArrowLeft, Bug, Download, FileCode2, FilePlus2, Loader2, Monitor,
+  Play, RefreshCw, Send, Smartphone, Sparkles, Tablet, Trash2, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
