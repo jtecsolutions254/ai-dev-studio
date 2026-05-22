@@ -666,75 +666,25 @@ const DEVICE_DIMS: Record<DeviceMode, { w: number; h: number; label: string }> =
   mobile: { w: 390, h: 844, label: "390 × 844" },
 };
 
-function PreviewPanel({
+function PreviewSurface({
   preview,
   previewKey,
-  reload,
+  deviceMode,
   lastError,
-  onFix,
-  fixing,
 }: {
   preview: string;
   previewKey: number;
-  reload: () => void;
+  deviceMode: DeviceMode;
   lastError: string | null;
-  onFix: () => void;
-  fixing: boolean;
 }) {
-  const [mode, setMode] = useState<DeviceMode>("desktop");
-  const dims = DEVICE_DIMS[mode];
-
+  const dims = DEVICE_DIMS[deviceMode];
   return (
-    <section className="w-[440px] border-l border-border bg-surface flex flex-col shrink-0">
-      <div className="h-11 border-b border-border flex items-center justify-between px-3 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className={`size-2 rounded-full ${lastError ? "bg-destructive" : "bg-signal"}`} />
-          <span className="text-xs font-medium font-mono">live preview</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="flex items-center bg-black/30 rounded border border-border p-0.5">
-            {(["desktop", "tablet", "mobile"] as DeviceMode[]).map((m) => {
-              const Icon = m === "desktop" ? Monitor : m === "tablet" ? Tablet : Smartphone;
-              return (
-                <button
-                  key={m}
-                  onClick={() => setMode(m)}
-                  className={`size-6 rounded flex items-center justify-center transition-colors ${
-                    mode === m ? "bg-accent/20 text-accent" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  aria-label={m}
-                  title={m}
-                >
-                  <Icon className="size-3" />
-                </button>
-              );
-            })}
-          </div>
-          {lastError && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 text-[10px] gap-1 text-destructive"
-              onClick={onFix}
-              disabled={fixing}
-            >
-              <Bug className="size-3" /> Fix
-            </Button>
-          )}
-          <button
-            className="size-6 rounded hover:bg-white/5 flex items-center justify-center text-muted-foreground"
-            onClick={reload}
-            aria-label="Reload preview"
-          >
-            <RefreshCw className="size-3.5" />
-          </button>
-        </div>
-      </div>
-      <div className="flex-1 p-3 overflow-auto grid place-items-center">
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 p-4 overflow-auto grid place-items-center bg-[radial-gradient(circle_at_center,_oklch(0.22_0.014_250)_0%,_var(--background)_70%)]">
         <div
-          className="bg-background rounded-lg outline-1 -outline-offset-1 outline-white/5 overflow-hidden transition-all"
+          className="bg-background rounded-lg outline-1 -outline-offset-1 outline-white/5 overflow-hidden transition-all shadow-2xl"
           style={
-            mode === "desktop"
+            deviceMode === "desktop"
               ? { width: "100%", height: "100%" }
               : { width: dims.w, height: dims.h, maxWidth: "100%", maxHeight: "100%" }
           }
@@ -748,10 +698,12 @@ function PreviewPanel({
           />
         </div>
       </div>
-      <div className="h-6 border-t border-border flex items-center justify-between px-3 text-[10px] font-mono text-muted-foreground shrink-0">
+      <div className="h-6 border-t border-border flex items-center justify-between px-3 text-[10px] font-mono text-muted-foreground shrink-0 bg-surface/30">
         <span>{dims.label}</span>
-        <span>hot-reload: on</span>
+        <span className={lastError ? "text-destructive" : ""}>
+          {lastError ? "runtime error" : "hot-reload: on"}
+        </span>
       </div>
-    </section>
+    </div>
   );
 }
