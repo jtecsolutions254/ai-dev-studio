@@ -28,17 +28,18 @@ function LoginPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+          options: { emailRedirectTo: `${window.location.origin}/onboarding` },
         });
         if (error) throw error;
         toast.success("Account created. Signing you in…");
         const { error: e2 } = await supabase.auth.signInWithPassword({ email, password });
         if (e2) throw e2;
+        navigate({ to: "/onboarding" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        navigate({ to: "/dashboard" });
       }
-      navigate({ to: "/dashboard" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Auth failed");
     } finally {
