@@ -110,7 +110,7 @@ export const sendChat = createServerFn({ method: "POST" })
     ]);
 
     const fileSnapshot = (files ?? [])
-      .map((f) => `// FILE: ${f.path}\n${f.content.slice(0, 4000)}`)
+      .map((f) => `// FILE: ${f.path}\n${f.content.slice(0, 8000)}`)
       .join("\n\n");
 
     const messages: Array<{ role: string; content: string; tool_calls?: unknown; tool_call_id?: string; name?: string }> = [
