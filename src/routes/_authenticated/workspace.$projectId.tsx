@@ -334,316 +334,325 @@ function Workspace() {
         </div>
       </nav>
 
-      {/* Main */}
+      {/* Main: Lovable-style two-pane — chat left, preview/code right */}
       <main className="flex-1 flex overflow-hidden">
-        {/* File tree */}
-        <aside className="w-60 border-r border-border bg-surface flex flex-col shrink-0">
-          <div className="p-3 flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
-              Explorer · {files.length}
-            </span>
-            <button
-              className="text-muted-foreground hover:text-foreground"
-              onClick={() => setShowNew((s) => !s)}
-              aria-label="New file"
-            >
-              <FilePlus2 className="size-3.5" />
-            </button>
-          </div>
-          {showNew && (
-            <div className="px-2 pb-2">
-              <Input
-                autoFocus
-                placeholder="path/to/file.css"
-                value={newPath}
-                onChange={(e) => setNewPath(e.target.value)}
-                className="h-7 text-xs"
-                onKeyDown={async (e) => {
-                  if (e.key === "Enter" && newPath.trim()) {
-                    await save.mutateAsync({ path: newPath.trim(), content: "" });
-                    setActivePath(newPath.trim());
-                    setNewPath("");
-                    setShowNew(false);
-                  } else if (e.key === "Escape") {
-                    setShowNew(false);
-                    setNewPath("");
-                  }
-                }}
-              />
-            </div>
-          )}
-          <div className="flex-1 overflow-y-auto px-2 space-y-0.5">
-            {files.length === 0 ? (
-              <div className="px-2 py-4 text-xs text-muted-foreground">No files yet.</div>
-            ) : (
-              files.map((f) => (
-                <div
-                  key={f.id}
-                  className={`group flex items-center justify-between px-2 py-1.5 rounded text-sm cursor-pointer ${
-                    f.path === activePath
-                      ? "bg-accent/10 text-accent"
-                      : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                  }`}
-                  onClick={() => setActivePath(f.path)}
-                >
-                  <span className="flex items-center gap-2 truncate">
-                    <FileCode2 className="size-3.5 opacity-60 shrink-0" />
-                    <span className="truncate font-mono text-xs">{f.path}</span>
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`Delete ${f.path}?`)) del.mutate(f.path);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="size-3" />
-                  </button>
+        {/* LEFT — Chat */}
+        <aside className="w-[420px] shrink-0 border-r border-border bg-surface flex flex-col min-h-0">
+          <div className="p-3 border-b border-border flex items-center justify-between bg-white/5 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="size-6 rounded-full bg-accent flex items-center justify-center">
+                <Sparkles className="size-3 text-accent-foreground" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold leading-tight">Neural Architect</div>
+                <div className="text-[10px] text-accent font-mono">
+                  {chat.isPending ? "building…" : "ready"}
                 </div>
-              ))
+              </div>
+            </div>
+            <div className="text-[10px] text-muted-foreground font-mono">gemini-3-flash</div>
+          </div>
+
+          <div ref={chatScrollRef} className="flex-1 p-4 space-y-4 overflow-y-auto min-h-0">
+            {messages.length === 0 && (
+              <div className="text-xs text-muted-foreground space-y-2">
+                <p>Describe an app and I&apos;ll build it — multi-file, real code, live preview.</p>
+                <p className="text-[10px] text-muted-foreground/70">
+                  Try: <em>&quot;build a kanban board with drag-and-drop, persisted to localStorage&quot;</em>
+                </p>
+              </div>
+            )}
+            {messages.map((m) => (
+              <div key={m.id} className="flex flex-col gap-1">
+                <span className={`text-[10px] uppercase font-bold ml-0.5 ${m.role === "user" ? "text-muted-foreground" : "text-accent"}`}>
+                  {m.role === "user" ? "You" : "Architect"}
+                </span>
+                <div className={`p-2.5 rounded-lg text-xs leading-relaxed whitespace-pre-wrap ${
+                  m.role === "user"
+                    ? "bg-white/5 text-foreground/90"
+                    : "bg-accent/5 border border-accent/20 text-foreground/90"
+                }`}>
+                  {m.content}
+                </div>
+                {m.metadata?.changes && m.metadata.changes.length > 0 && (
+                  <div className="flex flex-wrap gap-1 ml-0.5">
+                    {m.metadata.changes.map((c, i) => (
+                      <span
+                        key={i}
+                        className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
+                          c.action === "write"
+                            ? "bg-signal/10 text-signal border border-signal/20"
+                            : "bg-destructive/10 text-destructive border border-destructive/20"
+                        }`}
+                      >
+                        {c.action === "write" ? "✎" : "✕"} {c.path}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            {chat.isPending && (
+              <div className="flex items-center gap-2 text-[10px] text-accent font-mono">
+                <div className="flex gap-1">
+                  <div className="size-1 bg-accent rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="size-1 bg-accent rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <div className="size-1 bg-accent rounded-full animate-bounce" />
+                </div>
+                planning → generating → writing files…
+              </div>
             )}
           </div>
 
-          {/* AI activity stream */}
-          <div className="border-t border-border p-3 max-h-56 overflow-y-auto">
-            <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">
-              AI Activity
+          <div className="p-3 bg-background/50 border-t border-border shrink-0">
+            <div className="relative">
+              <Textarea
+                placeholder="Ask SYNTAX to build or modify…  (⌘/Ctrl+Enter to send)"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                rows={3}
+                className="resize-none text-xs pr-10"
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && chatInput.trim() && !chat.isPending) {
+                    chat.mutate(chatInput.trim());
+                  }
+                }}
+              />
+              <button
+                onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
+                disabled={!chatInput.trim() || chat.isPending}
+                className="absolute bottom-2 right-2 p-1.5 rounded bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90"
+                aria-label="Send"
+              >
+                {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+              </button>
             </div>
-            <div className="space-y-1.5">
-              {messages.filter((m) => m.role === "assistant" && m.metadata?.changes?.length).slice(-6).flatMap((m) =>
-                (m.metadata?.changes ?? []).map((c, i) => (
-                  <div key={`${m.id}-${i}`} className="flex items-center gap-1.5 text-[10px] font-mono">
-                    <span className={c.action === "write" ? "text-signal" : "text-destructive"}>
-                      {c.action === "write" ? "+" : "−"}
-                    </span>
-                    <span className="truncate text-muted-foreground">{c.path}</span>
-                  </div>
-                )),
+            <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+              <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
+              {lastError && (
+                <button
+                  onClick={autoFix}
+                  disabled={chat.isPending}
+                  className="flex items-center gap-1 text-destructive hover:underline disabled:opacity-50"
+                >
+                  <Zap className="size-3" /> Auto-fix error
+                </button>
               )}
-              {chat.isPending && (
-                <div className="flex items-center gap-1.5 text-[10px] text-accent font-mono">
-                  <Loader2 className="size-3 animate-spin" /> generating files…
-                </div>
-              )}
-              {!chat.isPending &&
-                messages.every((m) => !m.metadata?.changes?.length) && (
-                  <div className="text-[10px] text-muted-foreground">
-                    No AI changes yet. Send a prompt to begin.
-                  </div>
-                )}
             </div>
           </div>
         </aside>
 
-        {/* Center: editor + console */}
-        <section className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 flex flex-col bg-background min-h-0">
-            <div className="h-9 border-b border-border flex items-center justify-between px-4 bg-surface/30 shrink-0">
-              <div className="flex items-center h-full">
-                {activeFile ? (
-                  <div className="px-3 h-full flex items-center border-b-2 border-accent text-xs font-mono">
-                    {activeFile.path}
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground font-mono">no file selected</span>
-                )}
-              </div>
-              {activeFile && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs"
-                  disabled={save.isPending || draft === activeFile.content}
-                  onClick={() => save.mutate({ path: activeFile.path, content: draft })}
-                >
-                  {save.isPending ? <Loader2 className="size-3 animate-spin" /> : "Save"}
-                </Button>
-              )}
+        {/* RIGHT — Preview / Code tabs */}
+        <section className="flex-1 flex flex-col min-w-0 bg-background">
+          <div className="h-11 border-b border-border flex items-center justify-between px-3 bg-surface/30 shrink-0">
+            <div className="flex items-center gap-1 bg-black/30 rounded-md border border-border p-0.5">
+              <button
+                onClick={() => setRightTab("preview")}
+                className={`h-7 px-3 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                  rightTab === "preview" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Eye className="size-3.5" /> Preview
+              </button>
+              <button
+                onClick={() => setRightTab("code")}
+                className={`h-7 px-3 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                  rightTab === "code" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Code2 className="size-3.5" /> Code
+              </button>
             </div>
-            <div className="flex-1 min-h-0">
-              {activeFile ? (
-                <Editor
-                  height="100%"
-                  language={languageFor(activeFile.path)}
-                  value={draft}
-                  theme="vs-dark"
-                  onChange={(v) => setDraft(v ?? "")}
-                  options={{
-                    fontFamily: "JetBrains Mono, ui-monospace, monospace",
-                    fontSize: 13,
-                    minimap: { enabled: false },
-                    scrollBeyondLastLine: false,
-                    tabSize: 2,
-                  }}
-                />
-              ) : (
-                <div className="h-full grid place-items-center text-sm text-muted-foreground">
-                  Select a file or ask the AI to generate one
+            {rightTab === "preview" ? (
+              <div className="flex items-center gap-1">
+                <div className="flex items-center bg-black/30 rounded border border-border p-0.5">
+                  {(["desktop", "tablet", "mobile"] as DeviceMode[]).map((m) => {
+                    const Icon = m === "desktop" ? Monitor : m === "tablet" ? Tablet : Smartphone;
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => setDeviceMode(m)}
+                        className={`size-6 rounded flex items-center justify-center transition-colors ${
+                          deviceMode === m ? "bg-accent/20 text-accent" : "text-muted-foreground hover:text-foreground"
+                        }`}
+                        aria-label={m}
+                        title={m}
+                      >
+                        <Icon className="size-3" />
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Console */}
-          <div className="h-44 border-t border-border bg-surface flex flex-col shrink-0">
-            <div className="h-8 border-b border-border flex items-center justify-between px-4 shrink-0">
-              <div className="flex items-center gap-3">
-                <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
-                  Runtime Console
-                </span>
-                <span className="text-[10px] text-muted-foreground font-mono">
-                  {logs.length} log{logs.length === 1 ? "" : "s"}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
                 {lastError && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-6 text-[10px] gap-1 text-destructive hover:text-destructive"
-                    onClick={autoFix}
-                    disabled={chat.isPending}
-                  >
-                    <Zap className="size-3" /> Auto-fix with AI
+                  <Button size="sm" variant="ghost" className="h-6 text-[10px] gap-1 text-destructive" onClick={autoFix} disabled={chat.isPending}>
+                    <Bug className="size-3" /> Fix
                   </Button>
                 )}
                 <button
-                  className="text-[10px] text-muted-foreground hover:text-foreground"
-                  onClick={() => setLogs([])}
+                  className="size-6 rounded hover:bg-white/5 flex items-center justify-center text-muted-foreground"
+                  onClick={() => setPreviewKey((k) => k + 1)}
+                  aria-label="Reload preview"
                 >
-                  clear
+                  <RefreshCw className="size-3.5" />
                 </button>
               </div>
-            </div>
-            <div className="flex-1 p-3 font-mono text-[11px] overflow-y-auto space-y-0.5">
-              {logs.length === 0 && (
-                <div className="text-muted-foreground">$ runtime console — preview logs and errors stream here.</div>
-              )}
-              {logs.map((l, i) => (
-                <div
-                  key={i}
-                  className={
-                    l.level === "error"
-                      ? "text-destructive whitespace-pre-wrap"
-                      : l.level === "warn"
-                        ? "text-yellow-400"
-                        : "text-foreground/80"
-                  }
-                >
-                  <span className="text-muted-foreground">
-                    [{new Date(l.ts).toLocaleTimeString()}]
-                  </span>{" "}
-                  <span className="text-muted-foreground">{l.level}</span> {l.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Preview */}
-        <PreviewPanel
-          preview={preview}
-          previewKey={previewKey}
-          reload={() => setPreviewKey((k) => k + 1)}
-          lastError={lastError}
-          onFix={autoFix}
-          fixing={chat.isPending}
-        />
-      </main>
-
-      {/* AI Chat dock */}
-      <div className="fixed bottom-4 right-4 w-[380px] max-h-[560px] bg-surface border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-black/50 z-40">
-        <div className="p-3 border-b border-border flex items-center justify-between bg-white/5">
-          <div className="flex items-center gap-2">
-            <div className="size-6 rounded-full bg-accent flex items-center justify-center">
-              <Sparkles className="size-3 text-accent-foreground" />
-            </div>
-            <div>
-              <div className="text-xs font-semibold leading-tight">Neural Architect</div>
-              <div className="text-[10px] text-accent font-mono">
-                {chat.isPending ? "building…" : "ready"}
-              </div>
-            </div>
-          </div>
-          <div className="text-[10px] text-muted-foreground font-mono">gemini-3-flash</div>
-        </div>
-
-        <div ref={chatScrollRef} className="flex-1 p-3 space-y-3 overflow-y-auto min-h-[140px] max-h-[340px]">
-          {messages.length === 0 && (
-            <div className="text-xs text-muted-foreground space-y-2">
-              <p>Describe an app and I&apos;ll build it — multi-file, real code, live preview.</p>
-              <p className="text-[10px] text-muted-foreground/70">
-                Try: <em>&quot;build a kanban board with drag-and-drop, persisted to localStorage&quot;</em>
-              </p>
-            </div>
-          )}
-          {messages.map((m) => (
-            <div key={m.id} className="flex flex-col gap-1">
-              <span className={`text-[10px] uppercase font-bold ml-0.5 ${m.role === "user" ? "text-muted-foreground" : "text-accent"}`}>
-                {m.role === "user" ? "You" : "Architect"}
+            ) : (
+              <span className="text-[10px] text-muted-foreground font-mono">
+                {activeFile ? activeFile.path : "no file selected"}
               </span>
-              <div className={`p-2.5 rounded-lg text-xs leading-relaxed whitespace-pre-wrap ${
-                m.role === "user"
-                  ? "bg-white/5 text-foreground/90"
-                  : "bg-accent/5 border border-accent/20 text-foreground/90"
-              }`}>
-                {m.content}
-              </div>
-              {m.metadata?.changes && m.metadata.changes.length > 0 && (
-                <div className="flex flex-wrap gap-1 ml-0.5">
-                  {m.metadata.changes.map((c, i) => (
-                    <span
-                      key={i}
-                      className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
-                        c.action === "write"
-                          ? "bg-signal/10 text-signal border border-signal/20"
-                          : "bg-destructive/10 text-destructive border border-destructive/20"
-                      }`}
-                    >
-                      {c.action === "write" ? "✎" : "✕"} {c.path}
-                    </span>
-                  ))}
+            )}
+          </div>
+
+          {rightTab === "preview" ? (
+            <PreviewSurface
+              preview={preview}
+              previewKey={previewKey}
+              deviceMode={deviceMode}
+              lastError={lastError}
+            />
+          ) : (
+            <div className="flex-1 flex min-h-0">
+              {/* File tree */}
+              <aside className="w-56 border-r border-border bg-surface flex flex-col shrink-0">
+                <div className="p-3 flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+                    Explorer · {files.length}
+                  </span>
+                  <button
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowNew((s) => !s)}
+                    aria-label="New file"
+                  >
+                    <FilePlus2 className="size-3.5" />
+                  </button>
                 </div>
-              )}
-            </div>
-          ))}
-          {chat.isPending && (
-            <div className="flex items-center gap-2 text-[10px] text-accent font-mono">
-              <div className="flex gap-1">
-                <div className="size-1 bg-accent rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <div className="size-1 bg-accent rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <div className="size-1 bg-accent rounded-full animate-bounce" />
+                {showNew && (
+                  <div className="px-2 pb-2">
+                    <Input
+                      autoFocus
+                      placeholder="path/to/file.css"
+                      value={newPath}
+                      onChange={(e) => setNewPath(e.target.value)}
+                      className="h-7 text-xs"
+                      onKeyDown={async (e) => {
+                        if (e.key === "Enter" && newPath.trim()) {
+                          await save.mutateAsync({ path: newPath.trim(), content: "" });
+                          setActivePath(newPath.trim());
+                          setNewPath("");
+                          setShowNew(false);
+                        } else if (e.key === "Escape") {
+                          setShowNew(false);
+                          setNewPath("");
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="flex-1 overflow-y-auto px-2 space-y-0.5">
+                  {files.length === 0 ? (
+                    <div className="px-2 py-4 text-xs text-muted-foreground">No files yet.</div>
+                  ) : (
+                    files.map((f) => (
+                      <div
+                        key={f.id}
+                        className={`group flex items-center justify-between px-2 py-1.5 rounded text-sm cursor-pointer ${
+                          f.path === activePath
+                            ? "bg-accent/10 text-accent"
+                            : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                        }`}
+                        onClick={() => setActivePath(f.path)}
+                      >
+                        <span className="flex items-center gap-2 truncate">
+                          <FileCode2 className="size-3.5 opacity-60 shrink-0" />
+                          <span className="truncate font-mono text-xs">{f.path}</span>
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Delete ${f.path}?`)) del.mutate(f.path);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </aside>
+
+              {/* Editor + console */}
+              <div className="flex-1 flex flex-col min-w-0">
+                <div className="h-8 border-b border-border flex items-center justify-end px-3 bg-surface/30 shrink-0">
+                  {activeFile && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6"
+                      disabled={save.isPending || draft === activeFile.content}
+                      onClick={() => save.mutate({ path: activeFile.path, content: draft })}
+                    >
+                      {save.isPending ? <Loader2 className="size-3 animate-spin" /> : "Save"}
+                    </Button>
+                  )}
+                </div>
+                <div className="flex-1 min-h-0">
+                  {activeFile ? (
+                    <Editor
+                      height="100%"
+                      language={languageFor(activeFile.path)}
+                      value={draft}
+                      theme="vs-dark"
+                      onChange={(v) => setDraft(v ?? "")}
+                      options={{
+                        fontFamily: "JetBrains Mono, ui-monospace, monospace",
+                        fontSize: 13,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        tabSize: 2,
+                      }}
+                    />
+                  ) : (
+                    <div className="h-full grid place-items-center text-sm text-muted-foreground">
+                      Select a file or ask the AI to generate one
+                    </div>
+                  )}
+                </div>
+                <div className="h-40 border-t border-border bg-surface flex flex-col shrink-0">
+                  <div className="h-8 border-b border-border flex items-center justify-between px-3 shrink-0">
+                    <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
+                      Runtime Console · {logs.length}
+                    </span>
+                    <button className="text-[10px] text-muted-foreground hover:text-foreground" onClick={() => setLogs([])}>
+                      clear
+                    </button>
+                  </div>
+                  <div className="flex-1 p-3 font-mono text-[11px] overflow-y-auto space-y-0.5">
+                    {logs.length === 0 && (
+                      <div className="text-muted-foreground">$ preview logs and errors stream here.</div>
+                    )}
+                    {logs.map((l, i) => (
+                      <div
+                        key={i}
+                        className={
+                          l.level === "error"
+                            ? "text-destructive whitespace-pre-wrap"
+                            : l.level === "warn"
+                              ? "text-yellow-400"
+                              : "text-foreground/80"
+                        }
+                      >
+                        <span className="text-muted-foreground">[{new Date(l.ts).toLocaleTimeString()}]</span>{" "}
+                        <span className="text-muted-foreground">{l.level}</span> {l.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              planning → generating → writing files…
             </div>
           )}
-        </div>
-
-        <div className="p-3 bg-background/50 border-t border-border">
-          <div className="relative">
-            <Textarea
-              placeholder="Message AI engineer…  (⌘/Ctrl+Enter to send)"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              rows={2}
-              className="resize-none text-xs pr-10"
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && chatInput.trim() && !chat.isPending) {
-                  chat.mutate(chatInput.trim());
-                }
-              }}
-            />
-            <button
-              onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
-              disabled={!chatInput.trim() || chat.isPending}
-              className="absolute bottom-2 right-2 p-1.5 rounded bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90"
-              aria-label="Send"
-            >
-              {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
-            </button>
-          </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }
