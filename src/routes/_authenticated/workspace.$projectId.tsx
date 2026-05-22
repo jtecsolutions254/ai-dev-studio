@@ -5,11 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import JSZip from "jszip";
 import {
-import { LuminaWordmark } from "@/components/brand";
   getProject,
   saveFile,
   deleteFile as deleteFileFn,
 } from "@/lib/projects.functions";
+import { LuminaWordmark } from "@/components/brand";
+
 import { sendChat } from "@/lib/ai.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

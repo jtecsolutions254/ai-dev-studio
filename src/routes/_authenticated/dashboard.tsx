@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-import { LuminaWordmark } from "@/components/brand";
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { LuminaWordmark } from "@/components/brand";
+
 import { LogOut, Plus, Trash2, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
