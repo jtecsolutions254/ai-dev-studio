@@ -220,6 +220,19 @@ function Workspace() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "AI error"),
   });
 
+  // Auto-kick-off: if project has a description and zero messages, fire
+  // the initial generation prompt exactly once.
+  const autoKickedRef = useRef(false);
+  useEffect(() => {
+    if (autoKickedRef.current) return;
+    if (!data) return;
+    if (messages.length > 0) return;
+    const seed = data.project.description?.trim();
+    if (!seed) return;
+    autoKickedRef.current = true;
+    chat.mutate(`Build the following app end-to-end. Generate all files needed for a working live preview.\n\n${seed}`);
+  }, [data, messages.length, chat]);
+
   const [newPath, setNewPath] = useState("");
   const [showNew, setShowNew] = useState(false);
 
