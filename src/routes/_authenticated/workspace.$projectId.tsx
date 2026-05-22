@@ -341,10 +341,13 @@ function Workspace() {
         </div>
       </nav>
 
-      {/* Main: Lovable-style two-pane — chat left, preview/code right */}
-      <main className="flex-1 flex overflow-hidden">
+      {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
+      <main className="flex-1 overflow-hidden">
+        <ResizablePanelGroup direction="horizontal" className="h-full w-full">
+        <ResizablePanel defaultSize={28} minSize={18} maxSize={50} className="min-w-0">
         {/* LEFT — Chat */}
-        <aside className="w-[420px] shrink-0 border-r border-border bg-surface flex flex-col min-h-0">
+        <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0">
+
           <div className="p-3 border-b border-border flex items-center justify-between bg-white/5 shrink-0">
             <div className="flex items-center gap-2">
               <div className="size-6 rounded-full bg-accent flex items-center justify-center">
