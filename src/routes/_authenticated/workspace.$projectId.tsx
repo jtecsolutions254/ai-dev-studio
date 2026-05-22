@@ -451,9 +451,12 @@ function Workspace() {
             </div>
           </div>
         </aside>
-
+        </ResizablePanel>
+        <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
+        <ResizablePanel defaultSize={72} minSize={40} className="min-w-0">
         {/* RIGHT — Preview / Code tabs */}
-        <section className="flex-1 flex flex-col min-w-0 bg-background">
+        <section className="h-full flex flex-col min-w-0 bg-background">
+
           <div className="h-11 border-b border-border flex items-center justify-between px-3 bg-surface/30 shrink-0">
             <div className="flex items-center gap-1 bg-black/30 rounded-md border border-border p-0.5">
               <button
@@ -662,7 +665,10 @@ function Workspace() {
             </div>
           )}
         </section>
+        </ResizablePanel>
+        </ResizablePanelGroup>
       </main>
+
     </div>
   );
 }
