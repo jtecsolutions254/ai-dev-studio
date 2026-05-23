@@ -471,7 +471,7 @@ function Workspace() {
         </aside>
         </ResizablePanel>
         <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
-        <ResizablePanel defaultSize={60} minSize={40} className="min-w-0">
+        <ResizablePanel defaultSize={72} minSize={55} className="min-w-0">
         {/* RIGHT — Preview / Code tabs */}
         <section className="h-full flex flex-col min-w-0 bg-background">
 
