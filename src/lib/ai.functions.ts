@@ -35,6 +35,8 @@ no npm install, no bundler. You must produce code the browser can execute as-is.
 - Call write_file / delete_file as many times as needed (you may call many in one turn).
 - After tool calls, reply with a 1-3 sentence summary of what changed. The chat is for
   status only — the WORK happens in tool calls.
+- Reply in plain prose only. Do NOT use markdown in chat replies — no asterisks
+  (* or **), no hash headings (#), no bullet lists, no backticks. Clean sentences only.
 
 ## Multi-file React example skeleton
 index.html loads React + ReactDOM + Babel from CDN, then <script type="text/babel" src="app.jsx">.
