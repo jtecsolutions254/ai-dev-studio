@@ -522,6 +522,8 @@ function Workspace() {
               previewKey={previewKey}
               deviceMode={deviceMode}
               lastError={lastError}
+              isGenerating={chat.isPending}
+              projectSlug={data.project.name}
             />
           ) : (
             <div className="flex-1 flex min-h-0">
