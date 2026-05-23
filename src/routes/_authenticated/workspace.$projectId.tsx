@@ -23,7 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Bug, Code2, Download, Eye, FileCode2, FilePlus2, Loader2, Monitor,
-  Play, RefreshCw, Send, Smartphone, Sparkles, Tablet, Trash2, Zap,
+  Paperclip, Play, RefreshCw, Send, Share2, Smartphone, Sparkles, Tablet, Trash2, Upload, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
