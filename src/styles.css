@@ -64,7 +64,7 @@
   --muted: oklch(0.24 0.014 250);
   --muted-foreground: oklch(0.7 0.02 250);
 
-  --accent: oklch(0.72 0.14 235);          /* sky-cyan signal */
+  --accent: oklch(0.68 0.22 295);          /* violet signal */
   --accent-foreground: oklch(0.16 0.012 250);
 
   --signal: oklch(0.78 0.18 150);          /* status emerald */
