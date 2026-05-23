@@ -320,6 +320,12 @@ function Workspace() {
           <span className="text-xs font-medium truncate">{data.project.name}</span>
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-black/30 rounded-md px-2 py-1 border border-border">
+            <div className={`size-2 rounded-full ${lastError ? "bg-destructive animate-pulse" : "bg-signal animate-pulse"}`} />
+            <span className="text-[10px] font-mono text-muted-foreground uppercase">
+              {chat.isPending ? "Generating" : lastError ? "Runtime Error" : "System Ready"}
+            </span>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -327,17 +333,29 @@ function Workspace() {
             onClick={runWithWebContainers}
             title="Run Node-based projects via StackBlitz WebContainers (requires API key)"
           >
-            <Play className="size-3.5" /> Run (WC)
+            <Play className="size-3.5" /> Run
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1.5"
+            onClick={() => {
+              navigator.clipboard?.writeText(window.location.href);
+              toast.success("Workspace link copied");
+            }}
+          >
+            <Share2 className="size-3.5" /> Share
           </Button>
           <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={downloadZip}>
-            <Download className="size-3.5" /> Export ZIP
+            <Download className="size-3.5" /> Export
           </Button>
-          <div className="flex items-center gap-1.5 bg-black/30 rounded-md px-2 py-1 border border-border">
-            <div className={`size-2 rounded-full ${lastError ? "bg-destructive animate-pulse" : "bg-signal animate-pulse"}`} />
-            <span className="text-[10px] font-mono text-muted-foreground uppercase">
-              {chat.isPending ? "Generating" : lastError ? "Runtime Error" : "System Ready"}
-            </span>
-          </div>
+          <Button
+            size="sm"
+            className="text-xs gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => toast("Publish", { description: "Deploying your sandbox to a shareable URL — coming online." })}
+          >
+            <Upload className="size-3.5" /> Publish
+          </Button>
         </div>
       </nav>
 
