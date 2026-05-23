@@ -344,7 +344,7 @@ function Workspace() {
       {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
       <main className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-        <ResizablePanel defaultSize={28} minSize={18} maxSize={50} className="min-w-0">
+        <ResizablePanel defaultSize={40} minSize={25} maxSize={60} className="min-w-0">
         {/* LEFT — Chat */}
         <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0">
 
@@ -382,7 +382,7 @@ function Workspace() {
                     ? "bg-white/5 text-foreground/90"
                     : "bg-accent/5 border border-accent/20 text-foreground/90"
                 }`}>
-                  {m.content}
+                  {m.role === "assistant" ? sanitizeArchitect(m.content) : m.content}
                 </div>
                 {m.metadata?.changes && m.metadata.changes.length > 0 && (
                   <div className="flex flex-wrap gap-1 ml-0.5">
@@ -453,7 +453,7 @@ function Workspace() {
         </aside>
         </ResizablePanel>
         <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
-        <ResizablePanel defaultSize={72} minSize={40} className="min-w-0">
+        <ResizablePanel defaultSize={60} minSize={40} className="min-w-0">
         {/* RIGHT — Preview / Code tabs */}
         <section className="h-full flex flex-col min-w-0 bg-background">
 
@@ -522,6 +522,8 @@ function Workspace() {
               previewKey={previewKey}
               deviceMode={deviceMode}
               lastError={lastError}
+              isGenerating={chat.isPending}
+              projectSlug={data.project.name}
             />
           ) : (
             <div className="flex-1 flex min-h-0">
@@ -680,42 +682,91 @@ const DEVICE_DIMS: Record<DeviceMode, { w: number; h: number; label: string }> =
   mobile: { w: 390, h: 844, label: "390 × 844" },
 };
 
+function sanitizeArchitect(text: string): string {
+  return text
+    .replace(/`{1,3}/g, "")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/(^|\s)\*(?!\s)([^*\n]+?)\*(?=\s|[.,;:!?)]|$)/g, "$1$2")
+    .replace(/^\s*[\*\-\+]\s+/gm, "")
+    .trim();
+}
+
 function PreviewSurface({
   preview,
   previewKey,
   deviceMode,
   lastError,
+  isGenerating,
+  projectSlug,
 }: {
   preview: string;
   previewKey: number;
   deviceMode: DeviceMode;
   lastError: string | null;
+  isGenerating: boolean;
+  projectSlug: string;
 }) {
   const dims = DEVICE_DIMS[deviceMode];
+  const slug = (projectSlug || "project-sandbox").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project-sandbox";
+  const mockUrl = `lumina-preview://${slug}`;
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      <div className="flex-1 p-4 overflow-auto grid place-items-center bg-[radial-gradient(circle_at_center,_oklch(0.22_0.014_250)_0%,_var(--background)_70%)]">
+      <div className="flex-1 p-6 overflow-auto grid place-items-center bg-[radial-gradient(circle_at_center,_oklch(0.22_0.014_250)_0%,_var(--background)_70%)]">
+        {/* Browser mockup chrome */}
         <div
-          className="bg-background rounded-lg outline-1 -outline-offset-1 outline-white/5 overflow-hidden transition-all shadow-2xl"
+          className="bg-surface rounded-xl border border-border/80 shadow-2xl shadow-black/40 overflow-hidden flex flex-col transition-all"
           style={
             deviceMode === "desktop"
               ? { width: "100%", height: "100%" }
-              : { width: dims.w, height: dims.h, maxWidth: "100%", maxHeight: "100%" }
+              : { width: dims.w, height: dims.h + 38, maxWidth: "100%", maxHeight: "100%" }
           }
         >
-          <iframe
-            key={previewKey}
-            title="preview"
-            srcDoc={preview}
-            sandbox="allow-scripts allow-forms allow-modals allow-popups"
-            className="w-full h-full border-0 bg-white"
-          />
+          {/* Address bar */}
+          <div className="h-9 shrink-0 flex items-center gap-2 px-3 border-b border-border bg-surface-2/60">
+            <div className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-full bg-destructive/70" />
+              <span className="size-2.5 rounded-full bg-yellow-400/70" />
+              <span className="size-2.5 rounded-full bg-signal/80" />
+            </div>
+            <div className="flex-1 mx-2 h-6 rounded-md bg-background/70 border border-border flex items-center px-2.5 gap-2 font-mono text-[10.5px] text-muted-foreground truncate">
+              <span className="size-1.5 rounded-full bg-signal animate-pulse shrink-0" />
+              <span className="truncate">{mockUrl}</span>
+            </div>
+            <span className="text-[10px] font-mono text-muted-foreground/70 hidden sm:inline">
+              {dims.label}
+            </span>
+          </div>
+          {/* Iframe surface */}
+          <div className="flex-1 relative bg-white min-h-0">
+            <iframe
+              key={previewKey}
+              title="preview"
+              srcDoc={preview}
+              sandbox="allow-scripts allow-modals allow-same-origin"
+              className="w-full h-full border-0 bg-white"
+            />
+            {isGenerating && (
+              <div className="absolute inset-0 backdrop-blur-md bg-background/55 flex flex-col items-center justify-center gap-3 text-foreground/90 animate-entrance">
+                <div className="relative size-12">
+                  <div className="absolute inset-0 rounded-full border-2 border-accent/20" />
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-accent animate-spin" />
+                </div>
+                <div className="text-[11px] font-mono uppercase tracking-widest text-accent">
+                  compiling preview
+                </div>
+                <div className="text-[10px] font-mono text-muted-foreground">
+                  Lumina is generating new code…
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="h-6 border-t border-border flex items-center justify-between px-3 text-[10px] font-mono text-muted-foreground shrink-0 bg-surface/30">
-        <span>{dims.label}</span>
-        <span className={lastError ? "text-destructive" : ""}>
-          {lastError ? "runtime error" : "hot-reload: on"}
+        <span>sandboxed iframe · {dims.label}</span>
+        <span className={lastError ? "text-destructive" : isGenerating ? "text-accent" : ""}>
+          {lastError ? "runtime error" : isGenerating ? "generating…" : "hot-reload: on"}
         </span>
       </div>
     </div>
