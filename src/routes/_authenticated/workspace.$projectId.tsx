@@ -344,7 +344,7 @@ function Workspace() {
       {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
       <main className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-        <ResizablePanel defaultSize={28} minSize={18} maxSize={50} className="min-w-0">
+        <ResizablePanel defaultSize={40} minSize={25} maxSize={60} className="min-w-0">
         {/* LEFT — Chat */}
         <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0">
 
