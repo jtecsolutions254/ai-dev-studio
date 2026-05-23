@@ -571,6 +571,13 @@ function Workspace() {
               lastError={lastError}
               isGenerating={chat.isPending}
               projectSlug={data.project.name}
+              routePath={(() => {
+                const htmls = files.filter((f) => f.path.endsWith(".html"));
+                const active = htmls.find((f) => f.path === activePath) ?? htmls.find((f) => f.path === "index.html") ?? htmls[0];
+                if (!active) return "/";
+                const base = active.path.replace(/\.html$/, "");
+                return base === "index" ? "/" : `/${base}`;
+              })()}
             />
           ) : (
             <div className="flex-1 flex min-h-0">
