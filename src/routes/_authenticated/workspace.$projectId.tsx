@@ -382,7 +382,7 @@ function Workspace() {
                     ? "bg-white/5 text-foreground/90"
                     : "bg-accent/5 border border-accent/20 text-foreground/90"
                 }`}>
-                  {m.content}
+                  {m.role === "assistant" ? sanitizeArchitect(m.content) : m.content}
                 </div>
                 {m.metadata?.changes && m.metadata.changes.length > 0 && (
                   <div className="flex flex-wrap gap-1 ml-0.5">
