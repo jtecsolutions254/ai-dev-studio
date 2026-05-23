@@ -23,7 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Bug, Code2, Download, Eye, FileCode2, FilePlus2, Loader2, Monitor,
-  Play, RefreshCw, Send, Smartphone, Sparkles, Tablet, Trash2, Zap,
+  Paperclip, Play, RefreshCw, Send, Share2, Smartphone, Sparkles, Tablet, Trash2, Upload, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -320,6 +320,12 @@ function Workspace() {
           <span className="text-xs font-medium truncate">{data.project.name}</span>
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-black/30 rounded-md px-2 py-1 border border-border">
+            <div className={`size-2 rounded-full ${lastError ? "bg-destructive animate-pulse" : "bg-signal animate-pulse"}`} />
+            <span className="text-[10px] font-mono text-muted-foreground uppercase">
+              {chat.isPending ? "Generating" : lastError ? "Runtime Error" : "System Ready"}
+            </span>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -327,24 +333,36 @@ function Workspace() {
             onClick={runWithWebContainers}
             title="Run Node-based projects via StackBlitz WebContainers (requires API key)"
           >
-            <Play className="size-3.5" /> Run (WC)
+            <Play className="size-3.5" /> Run
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1.5"
+            onClick={() => {
+              navigator.clipboard?.writeText(window.location.href);
+              toast.success("Workspace link copied");
+            }}
+          >
+            <Share2 className="size-3.5" /> Share
           </Button>
           <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={downloadZip}>
-            <Download className="size-3.5" /> Export ZIP
+            <Download className="size-3.5" /> Export
           </Button>
-          <div className="flex items-center gap-1.5 bg-black/30 rounded-md px-2 py-1 border border-border">
-            <div className={`size-2 rounded-full ${lastError ? "bg-destructive animate-pulse" : "bg-signal animate-pulse"}`} />
-            <span className="text-[10px] font-mono text-muted-foreground uppercase">
-              {chat.isPending ? "Generating" : lastError ? "Runtime Error" : "System Ready"}
-            </span>
-          </div>
+          <Button
+            size="sm"
+            className="text-xs gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => toast("Publish", { description: "Deploying your sandbox to a shareable URL — coming online." })}
+          >
+            <Upload className="size-3.5" /> Publish
+          </Button>
         </div>
       </nav>
 
       {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
       <main className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-        <ResizablePanel defaultSize={40} minSize={25} maxSize={60} className="min-w-0">
+        <ResizablePanel defaultSize={28} minSize={22} maxSize={45} className="min-w-0">
         {/* LEFT — Chat */}
         <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0">
 
@@ -414,30 +432,59 @@ function Workspace() {
             )}
           </div>
 
-          <div className="p-3 bg-background/50 border-t border-border shrink-0">
-            <div className="relative">
+          <div className="p-3 bg-background/50 border-t border-border shrink-0 space-y-2">
+            {messages.length === 0 && !chat.isPending && (
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "Build a kanban board",
+                  "Make a pricing page",
+                  "Add a dark/light toggle",
+                  "Create a contact form",
+                ].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setChatInput(s)}
+                    className="text-[10px] font-mono px-2 py-1 rounded-full border border-border bg-surface hover:border-accent/60 hover:text-accent text-muted-foreground transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="relative rounded-lg border border-border bg-surface/80 focus-within:border-accent/60 transition-colors">
               <Textarea
-                placeholder="Ask Lumina to build or modify…  (⌘/Ctrl+Enter to send)"
+                placeholder="Ask Lumina to build or modify…"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 rows={3}
-                className="resize-none text-xs pr-10"
+                className="resize-none text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 pr-20 pb-8"
                 onKeyDown={(e) => {
                   if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && chatInput.trim() && !chat.isPending) {
                     chat.mutate(chatInput.trim());
                   }
                 }}
               />
+              <div className="absolute bottom-1.5 left-2 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => toast("Attachments coming soon")}
+                  className="size-7 rounded-md hover:bg-white/5 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                  aria-label="Attach"
+                >
+                  <Paperclip className="size-3.5" />
+                </button>
+                <span className="text-[10px] font-mono text-muted-foreground/70">⌘↵ to send</span>
+              </div>
               <button
                 onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
                 disabled={!chatInput.trim() || chat.isPending}
-                className="absolute bottom-2 right-2 p-1.5 rounded bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90"
+                className="absolute bottom-1.5 right-1.5 size-7 rounded-md bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90 flex items-center justify-center"
                 aria-label="Send"
               >
                 {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
               </button>
             </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
               <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
               {lastError && (
                 <button
@@ -453,7 +500,7 @@ function Workspace() {
         </aside>
         </ResizablePanel>
         <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
-        <ResizablePanel defaultSize={60} minSize={40} className="min-w-0">
+        <ResizablePanel defaultSize={72} minSize={55} className="min-w-0">
         {/* RIGHT — Preview / Code tabs */}
         <section className="h-full flex flex-col min-w-0 bg-background">
 
@@ -524,6 +571,13 @@ function Workspace() {
               lastError={lastError}
               isGenerating={chat.isPending}
               projectSlug={data.project.name}
+              routePath={(() => {
+                const htmls = files.filter((f) => f.path.endsWith(".html"));
+                const active = htmls.find((f) => f.path === activePath) ?? htmls.find((f) => f.path === "index.html") ?? htmls[0];
+                if (!active) return "/";
+                const base = active.path.replace(/\.html$/, "");
+                return base === "index" ? "/" : `/${base}`;
+              })()}
             />
           ) : (
             <div className="flex-1 flex min-h-0">
@@ -699,6 +753,7 @@ function PreviewSurface({
   lastError,
   isGenerating,
   projectSlug,
+  routePath,
 }: {
   preview: string;
   previewKey: number;
@@ -706,10 +761,11 @@ function PreviewSurface({
   lastError: string | null;
   isGenerating: boolean;
   projectSlug: string;
+  routePath: string;
 }) {
   const dims = DEVICE_DIMS[deviceMode];
   const slug = (projectSlug || "project-sandbox").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project-sandbox";
-  const mockUrl = `lumina-preview://${slug}`;
+  const mockUrl = `lumina-preview://${slug}${routePath}`;
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 p-6 overflow-auto grid place-items-center bg-[radial-gradient(circle_at_center,_oklch(0.22_0.014_250)_0%,_var(--background)_70%)]">

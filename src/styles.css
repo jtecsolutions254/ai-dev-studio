@@ -64,7 +64,7 @@
   --muted: oklch(0.24 0.014 250);
   --muted-foreground: oklch(0.7 0.02 250);
 
-  --accent: oklch(0.72 0.14 235);          /* sky-cyan signal */
+  --accent: oklch(0.68 0.22 295);          /* violet signal */
   --accent-foreground: oklch(0.16 0.012 250);
 
   --signal: oklch(0.78 0.18 150);          /* status emerald */
@@ -75,7 +75,7 @@
 
   --border: oklch(0.27 0.014 250);
   --input: oklch(0.27 0.014 250);
-  --ring: oklch(0.72 0.14 235);
+  --ring: oklch(0.68 0.22 295);
 }
 
 .dark {
@@ -94,7 +94,7 @@
   --secondary-foreground: oklch(0.985 0.005 250);
   --muted: oklch(0.24 0.014 250);
   --muted-foreground: oklch(0.7 0.02 250);
-  --accent: oklch(0.72 0.14 235);
+  --accent: oklch(0.68 0.22 295);
   --accent-foreground: oklch(0.16 0.012 250);
   --signal: oklch(0.78 0.18 150);
   --signal-foreground: oklch(0.16 0.012 250);
@@ -102,7 +102,7 @@
   --destructive-foreground: oklch(0.985 0.005 250);
   --border: oklch(0.27 0.014 250);
   --input: oklch(0.27 0.014 250);
-  --ring: oklch(0.72 0.14 235);
+  --ring: oklch(0.68 0.22 295);
 }
 
 @keyframes pulse-shimmer {
