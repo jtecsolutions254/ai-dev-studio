@@ -753,6 +753,7 @@ function PreviewSurface({
   lastError,
   isGenerating,
   projectSlug,
+  routePath,
 }: {
   preview: string;
   previewKey: number;
@@ -760,10 +761,11 @@ function PreviewSurface({
   lastError: string | null;
   isGenerating: boolean;
   projectSlug: string;
+  routePath: string;
 }) {
   const dims = DEVICE_DIMS[deviceMode];
   const slug = (projectSlug || "project-sandbox").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project-sandbox";
-  const mockUrl = `lumina-preview://${slug}`;
+  const mockUrl = `lumina-preview://${slug}${routePath}`;
   return (
     <div className="flex-1 flex flex-col min-h-0">
       <div className="flex-1 p-6 overflow-auto grid place-items-center bg-[radial-gradient(circle_at_center,_oklch(0.22_0.014_250)_0%,_var(--background)_70%)]">
