@@ -432,30 +432,59 @@ function Workspace() {
             )}
           </div>
 
-          <div className="p-3 bg-background/50 border-t border-border shrink-0">
-            <div className="relative">
+          <div className="p-3 bg-background/50 border-t border-border shrink-0 space-y-2">
+            {messages.length === 0 && !chat.isPending && (
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "Build a kanban board",
+                  "Make a pricing page",
+                  "Add a dark/light toggle",
+                  "Create a contact form",
+                ].map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setChatInput(s)}
+                    className="text-[10px] font-mono px-2 py-1 rounded-full border border-border bg-surface hover:border-accent/60 hover:text-accent text-muted-foreground transition-colors"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="relative rounded-lg border border-border bg-surface/80 focus-within:border-accent/60 transition-colors">
               <Textarea
-                placeholder="Ask Lumina to build or modify…  (⌘/Ctrl+Enter to send)"
+                placeholder="Ask Lumina to build or modify…"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 rows={3}
-                className="resize-none text-xs pr-10"
+                className="resize-none text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 pr-20 pb-8"
                 onKeyDown={(e) => {
                   if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && chatInput.trim() && !chat.isPending) {
                     chat.mutate(chatInput.trim());
                   }
                 }}
               />
+              <div className="absolute bottom-1.5 left-2 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => toast("Attachments coming soon")}
+                  className="size-7 rounded-md hover:bg-white/5 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                  aria-label="Attach"
+                >
+                  <Paperclip className="size-3.5" />
+                </button>
+                <span className="text-[10px] font-mono text-muted-foreground/70">⌘↵ to send</span>
+              </div>
               <button
                 onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
                 disabled={!chatInput.trim() || chat.isPending}
-                className="absolute bottom-2 right-2 p-1.5 rounded bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90"
+                className="absolute bottom-1.5 right-1.5 size-7 rounded-md bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90 flex items-center justify-center"
                 aria-label="Send"
               >
                 {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
               </button>
             </div>
-            <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground font-mono">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
               <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
               {lastError && (
                 <button
