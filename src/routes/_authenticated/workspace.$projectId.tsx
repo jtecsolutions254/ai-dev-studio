@@ -521,39 +521,60 @@ function Workspace() {
                 ))}
               </div>
             )}
-            <div className="relative rounded-lg border border-border bg-surface/80 focus-within:border-accent/60 transition-colors">
+            <div
+              className="relative rounded-lg border border-border bg-surface/80 focus-within:border-accent/60 transition-colors overflow-hidden"
+              onDragOver={(e) => { e.preventDefault(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                handleAttach(e.dataTransfer.files);
+              }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  handleAttach(e.target.files);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              />
               <Textarea
                 placeholder="Ask Lumina to build or modify…"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 rows={3}
-                className="resize-none text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 pr-20 pb-8"
+                className="resize-none text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 pl-2 pr-12 pt-2 pb-10 min-h-[80px]"
                 onKeyDown={(e) => {
                   if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && chatInput.trim() && !chat.isPending) {
                     chat.mutate(chatInput.trim());
                   }
                 }}
               />
-              <div className="absolute bottom-1.5 left-2 flex items-center gap-1">
+              <div className="absolute inset-x-0 bottom-0 h-9 flex items-center justify-between px-1.5 pointer-events-none">
+                <div className="flex items-center gap-1 pointer-events-auto min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="size-7 rounded-md hover:bg-white/5 flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0"
+                    aria-label="Attach files"
+                    title="Attach files to project"
+                  >
+                    <Paperclip className="size-3.5" />
+                  </button>
+                  <span className="text-[10px] font-mono text-muted-foreground/70 truncate">⌘↵ to send</span>
+                </div>
                 <button
-                  type="button"
-                  onClick={() => toast("Attachments coming soon")}
-                  className="size-7 rounded-md hover:bg-white/5 flex items-center justify-center text-muted-foreground hover:text-foreground"
-                  aria-label="Attach"
+                  onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
+                  disabled={!chatInput.trim() || chat.isPending}
+                  className="pointer-events-auto size-7 rounded-md bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90 flex items-center justify-center shrink-0"
+                  aria-label="Send"
                 >
-                  <Paperclip className="size-3.5" />
+                  {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
                 </button>
-                <span className="text-[10px] font-mono text-muted-foreground/70">⌘↵ to send</span>
               </div>
-              <button
-                onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
-                disabled={!chatInput.trim() || chat.isPending}
-                className="absolute bottom-1.5 right-1.5 size-7 rounded-md bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90 flex items-center justify-center"
-                aria-label="Send"
-              >
-                {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
-              </button>
             </div>
+
             <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
               <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
               {lastError && (
