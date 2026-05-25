@@ -8,6 +8,7 @@ import {
   getProject,
   saveFile,
   deleteFile as deleteFileFn,
+  deleteProject,
 } from "@/lib/projects.functions";
 import { LuminaWordmark } from "@/components/brand";
 
