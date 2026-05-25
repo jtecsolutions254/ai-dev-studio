@@ -160,6 +160,7 @@ function Workspace() {
   const getFn = useServerFn(getProject);
   const saveFn = useServerFn(saveFile);
   const delFn = useServerFn(deleteFileFn);
+  const deleteProjectFn = useServerFn(deleteProject);
   const chatFn = useServerFn(sendChat);
 
   const queryKey = useMemo(() => ["project", projectId], [projectId]);
