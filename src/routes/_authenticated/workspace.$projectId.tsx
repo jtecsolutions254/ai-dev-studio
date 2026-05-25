@@ -8,6 +8,7 @@ import {
   getProject,
   saveFile,
   deleteFile as deleteFileFn,
+  deleteProject,
 } from "@/lib/projects.functions";
 import { LuminaWordmark } from "@/components/brand";
 
@@ -159,6 +160,7 @@ function Workspace() {
   const getFn = useServerFn(getProject);
   const saveFn = useServerFn(saveFile);
   const delFn = useServerFn(deleteFileFn);
+  const deleteProjectFn = useServerFn(deleteProject);
   const chatFn = useServerFn(sendChat);
 
   const queryKey = useMemo(() => ["project", projectId], [projectId]);
@@ -212,6 +214,59 @@ function Workspace() {
       setActivePath(null);
     },
   });
+
+  const removeProject = useMutation({
+    mutationFn: () => deleteProjectFn({ data: { id: projectId } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Project deleted");
+      navigate({ to: "/dashboard" });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to delete"),
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const TEXT_EXT = /\.(html?|css|js|mjs|cjs|jsx|ts|tsx|json|md|txt|svg|xml|yml|yaml|csv)$/i;
+
+  const readFileAsText = (f: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result ?? ""));
+      r.onerror = () => reject(r.error);
+      r.readAsText(f);
+    });
+  const readFileAsDataURL = (f: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result ?? ""));
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(f);
+    });
+
+  const handleAttach = useCallback(
+    async (fileList: FileList | null) => {
+      if (!fileList || fileList.length === 0) return;
+      const uploaded: string[] = [];
+      for (const file of Array.from(fileList)) {
+        try {
+          const path = file.name.replace(/^\/+/, "");
+          const content = TEXT_EXT.test(file.name)
+            ? await readFileAsText(file)
+            : await readFileAsDataURL(file);
+          await saveFn({ data: { projectId, path, content } });
+          uploaded.push(path);
+        } catch (err) {
+          toast.error(`Failed: ${file.name}`);
+        }
+      }
+      if (uploaded.length) {
+        qc.invalidateQueries({ queryKey });
+        toast.success(`Added ${uploaded.length} file${uploaded.length === 1 ? "" : "s"}`);
+      }
+    },
+    [projectId, qc, queryKey, saveFn],
+  );
+
 
   const [chatInput, setChatInput] = useState("");
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -350,6 +405,19 @@ function Workspace() {
             <Download className="size-3.5" /> Export
           </Button>
           <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              if (confirm(`Delete "${data.project.name}"? This cannot be undone.`)) {
+                removeProject.mutate();
+              }
+            }}
+            disabled={removeProject.isPending}
+          >
+            <Trash2 className="size-3.5" /> Delete
+          </Button>
+          <Button
             size="sm"
             className="text-xs gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
             onClick={() => toast("Publish", { description: "Deploying your sandbox to a shareable URL — coming online." })}
@@ -359,12 +427,14 @@ function Workspace() {
         </div>
       </nav>
 
+
       {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
       <main className="flex-1 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-        <ResizablePanel defaultSize={28} minSize={22} maxSize={45} className="min-w-0">
+        <ResizablePanel defaultSize={28} minSize={24} maxSize={45} className="min-w-[300px]">
         {/* LEFT — Chat */}
-        <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0">
+        <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0 min-w-0 overflow-hidden">
+
 
           <div className="p-3 border-b border-border flex items-center justify-between bg-white/5 shrink-0">
             <div className="flex items-center gap-2">
@@ -451,39 +521,60 @@ function Workspace() {
                 ))}
               </div>
             )}
-            <div className="relative rounded-lg border border-border bg-surface/80 focus-within:border-accent/60 transition-colors">
+            <div
+              className="relative rounded-lg border border-border bg-surface/80 focus-within:border-accent/60 transition-colors overflow-hidden"
+              onDragOver={(e) => { e.preventDefault(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                handleAttach(e.dataTransfer.files);
+              }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  handleAttach(e.target.files);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              />
               <Textarea
                 placeholder="Ask Lumina to build or modify…"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 rows={3}
-                className="resize-none text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 pr-20 pb-8"
+                className="resize-none text-xs border-0 bg-transparent shadow-none focus-visible:ring-0 pl-2 pr-12 pt-2 pb-10 min-h-[80px]"
                 onKeyDown={(e) => {
                   if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && chatInput.trim() && !chat.isPending) {
                     chat.mutate(chatInput.trim());
                   }
                 }}
               />
-              <div className="absolute bottom-1.5 left-2 flex items-center gap-1">
+              <div className="absolute inset-x-0 bottom-0 h-9 flex items-center justify-between px-1.5 pointer-events-none">
+                <div className="flex items-center gap-1 pointer-events-auto min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="size-7 rounded-md hover:bg-white/5 flex items-center justify-center text-muted-foreground hover:text-foreground shrink-0"
+                    aria-label="Attach files"
+                    title="Attach files to project"
+                  >
+                    <Paperclip className="size-3.5" />
+                  </button>
+                  <span className="text-[10px] font-mono text-muted-foreground/70 truncate">⌘↵ to send</span>
+                </div>
                 <button
-                  type="button"
-                  onClick={() => toast("Attachments coming soon")}
-                  className="size-7 rounded-md hover:bg-white/5 flex items-center justify-center text-muted-foreground hover:text-foreground"
-                  aria-label="Attach"
+                  onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
+                  disabled={!chatInput.trim() || chat.isPending}
+                  className="pointer-events-auto size-7 rounded-md bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90 flex items-center justify-center shrink-0"
+                  aria-label="Send"
                 >
-                  <Paperclip className="size-3.5" />
+                  {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
                 </button>
-                <span className="text-[10px] font-mono text-muted-foreground/70">⌘↵ to send</span>
               </div>
-              <button
-                onClick={() => chatInput.trim() && !chat.isPending && chat.mutate(chatInput.trim())}
-                disabled={!chatInput.trim() || chat.isPending}
-                className="absolute bottom-1.5 right-1.5 size-7 rounded-md bg-accent text-accent-foreground disabled:opacity-40 hover:opacity-90 flex items-center justify-center"
-                aria-label="Send"
-              >
-                {chat.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
-              </button>
             </div>
+
             <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
               <span>{files.length} file{files.length === 1 ? "" : "s"}</span>
               {lastError && (
@@ -500,9 +591,10 @@ function Workspace() {
         </aside>
         </ResizablePanel>
         <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
-        <ResizablePanel defaultSize={72} minSize={55} className="min-w-0">
+        <ResizablePanel defaultSize={72} minSize={45} className="min-w-[420px]">
         {/* RIGHT — Preview / Code tabs */}
-        <section className="h-full flex flex-col min-w-0 bg-background">
+        <section className="h-full flex flex-col min-w-0 min-h-0 bg-background overflow-hidden">
+
 
           <div className="h-11 border-b border-border flex items-center justify-between px-3 bg-surface/30 shrink-0">
             <div className="flex items-center gap-1 bg-black/30 rounded-md border border-border p-0.5">
@@ -582,7 +674,7 @@ function Workspace() {
           ) : (
             <div className="flex-1 flex min-h-0">
               {/* File tree */}
-              <aside className="w-56 border-r border-border bg-surface flex flex-col shrink-0">
+              <aside className="w-56 min-w-[14rem] border-r border-border bg-surface flex flex-col shrink-0 overflow-hidden">
                 <div className="p-3 flex items-center justify-between">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
                     Explorer · {files.length}
