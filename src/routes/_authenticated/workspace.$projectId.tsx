@@ -570,9 +570,10 @@ function Workspace() {
         </aside>
         </ResizablePanel>
         <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
-        <ResizablePanel defaultSize={72} minSize={55} className="min-w-0">
+        <ResizablePanel defaultSize={72} minSize={45} className="min-w-[420px]">
         {/* RIGHT — Preview / Code tabs */}
-        <section className="h-full flex flex-col min-w-0 bg-background">
+        <section className="h-full flex flex-col min-w-0 min-h-0 bg-background overflow-hidden">
+
 
           <div className="h-11 border-b border-border flex items-center justify-between px-3 bg-surface/30 shrink-0">
             <div className="flex items-center gap-1 bg-black/30 rounded-md border border-border p-0.5">
