@@ -405,6 +405,19 @@ function Workspace() {
             <Download className="size-3.5" /> Export
           </Button>
           <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              if (confirm(`Delete "${data.project.name}"? This cannot be undone.`)) {
+                removeProject.mutate();
+              }
+            }}
+            disabled={removeProject.isPending}
+          >
+            <Trash2 className="size-3.5" /> Delete
+          </Button>
+          <Button
             size="sm"
             className="text-xs gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
             onClick={() => toast("Publish", { description: "Deploying your sandbox to a shareable URL — coming online." })}
@@ -413,6 +426,7 @@ function Workspace() {
           </Button>
         </div>
       </nav>
+
 
       {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
       <main className="flex-1 overflow-hidden">
