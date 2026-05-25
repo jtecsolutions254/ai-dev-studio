@@ -215,6 +215,59 @@ function Workspace() {
     },
   });
 
+  const removeProject = useMutation({
+    mutationFn: () => deleteProjectFn({ data: { id: projectId } }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Project deleted");
+      navigate({ to: "/dashboard" });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to delete"),
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const TEXT_EXT = /\.(html?|css|js|mjs|cjs|jsx|ts|tsx|json|md|txt|svg|xml|yml|yaml|csv)$/i;
+
+  const readFileAsText = (f: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result ?? ""));
+      r.onerror = () => reject(r.error);
+      r.readAsText(f);
+    });
+  const readFileAsDataURL = (f: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result ?? ""));
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(f);
+    });
+
+  const handleAttach = useCallback(
+    async (fileList: FileList | null) => {
+      if (!fileList || fileList.length === 0) return;
+      const uploaded: string[] = [];
+      for (const file of Array.from(fileList)) {
+        try {
+          const path = file.name.replace(/^\/+/, "");
+          const content = TEXT_EXT.test(file.name)
+            ? await readFileAsText(file)
+            : await readFileAsDataURL(file);
+          await saveFn({ data: { projectId, path, content } });
+          uploaded.push(path);
+        } catch (err) {
+          toast.error(`Failed: ${file.name}`);
+        }
+      }
+      if (uploaded.length) {
+        qc.invalidateQueries({ queryKey });
+        toast.success(`Added ${uploaded.length} file${uploaded.length === 1 ? "" : "s"}`);
+      }
+    },
+    [projectId, qc, queryKey, saveFn],
+  );
+
+
   const [chatInput, setChatInput] = useState("");
   const chatScrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
