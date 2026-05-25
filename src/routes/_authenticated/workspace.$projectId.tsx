@@ -653,7 +653,7 @@ function Workspace() {
           ) : (
             <div className="flex-1 flex min-h-0">
               {/* File tree */}
-              <aside className="w-56 border-r border-border bg-surface flex flex-col shrink-0">
+              <aside className="w-56 min-w-[14rem] border-r border-border bg-surface flex flex-col shrink-0 overflow-hidden">
                 <div className="p-3 flex items-center justify-between">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
                     Explorer · {files.length}
