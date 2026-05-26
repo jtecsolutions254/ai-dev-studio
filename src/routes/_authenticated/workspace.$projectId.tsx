@@ -16,15 +16,10 @@ import { sendChat } from "@/lib/ai.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Bug, Code2, Download, Eye, FileCode2, FilePlus2, Loader2, Monitor,
-  Paperclip, Play, RefreshCw, Send, Share2, Smartphone, Sparkles, Tablet, Trash2, Upload, Zap,
+  Paperclip, Play, RefreshCw, Send, Share2, Smartphone, Sparkles, Tablet, Terminal, Trash2, Upload, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
