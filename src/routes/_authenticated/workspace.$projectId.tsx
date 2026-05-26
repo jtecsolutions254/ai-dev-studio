@@ -16,15 +16,10 @@ import { sendChat } from "@/lib/ai.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Bug, Code2, Download, Eye, FileCode2, FilePlus2, Loader2, Monitor,
-  Paperclip, Play, RefreshCw, Send, Share2, Smartphone, Sparkles, Tablet, Trash2, Upload, Zap,
+  Paperclip, Play, RefreshCw, Send, Share2, Smartphone, Sparkles, Tablet, Terminal, Trash2, Upload, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -298,8 +293,53 @@ function Workspace() {
 
   const [newPath, setNewPath] = useState("");
   const [showNew, setShowNew] = useState(false);
-  const [rightTab, setRightTab] = useState<"preview" | "code">("preview");
+  const [rightTab, setRightTab] = useState<"preview" | "code" | "system">("preview");
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
+
+  // Pixel-based chat panel width persisted to localStorage.
+  const CHAT_KEY = "lumina-chat-panel-width";
+  const CHAT_DEFAULT = 380;
+  const CHAT_MIN = 300;
+  const CHAT_MAX = 560;
+  const [chatWidth, setChatWidth] = useState<number>(CHAT_DEFAULT);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CHAT_KEY);
+      if (raw) {
+        const n = parseInt(raw, 10);
+        if (!Number.isNaN(n)) setChatWidth(Math.min(CHAT_MAX, Math.max(CHAT_MIN, n)));
+      }
+    } catch { /* ignore */ }
+  }, []);
+  const draggingRef = useRef(false);
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    draggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    const onMove = (ev: MouseEvent) => {
+      if (!draggingRef.current) return;
+      const next = Math.min(CHAT_MAX, Math.max(CHAT_MIN, ev.clientX));
+      setChatWidth(next);
+    };
+    const onUp = () => {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      try { localStorage.setItem(CHAT_KEY, String(chatWidthRef.current)); } catch { /* ignore */ }
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, []);
+  const chatWidthRef = useRef(chatWidth);
+  useEffect(() => { chatWidthRef.current = chatWidth; }, [chatWidth]);
+  const resetChatWidth = useCallback(() => {
+    setChatWidth(CHAT_DEFAULT);
+    try { localStorage.setItem(CHAT_KEY, String(CHAT_DEFAULT)); } catch { /* ignore */ }
+  }, []);
 
   const preview = useMemo(() => buildPreview(files), [files]);
   const [previewKey, setPreviewKey] = useState(0);
@@ -428,27 +468,26 @@ function Workspace() {
       </nav>
 
 
-      {/* Main: Lovable-style two-pane — chat left, preview/code right (resizable) */}
-      <main className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-        <ResizablePanel defaultSize={28} minSize={24} maxSize={45} className="min-w-[300px]">
-        {/* LEFT — Chat */}
-        <aside className="h-full border-r border-border bg-surface flex flex-col min-h-0 min-w-0 overflow-hidden">
-
-
+      {/* Main: Lovable-style two-pane — chat left (fixed px), preview/code/system right */}
+      <main className="flex-1 min-h-0 flex overflow-hidden">
+        {/* LEFT — Chat (fixed pixel width, never overlays preview) */}
+        <aside
+          className="h-full border-r border-border bg-surface flex flex-col min-h-0 overflow-hidden shrink-0"
+          style={{ width: chatWidth }}
+        >
           <div className="p-3 border-b border-border flex items-center justify-between bg-white/5 shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="size-6 rounded-full bg-accent flex items-center justify-center">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="size-6 rounded-full bg-accent flex items-center justify-center shrink-0">
                 <Sparkles className="size-3 text-accent-foreground" />
               </div>
-              <div>
-                <div className="text-xs font-semibold leading-tight">Lumina Architect</div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold leading-tight truncate">Lumina Architect</div>
                 <div className="text-[10px] text-accent font-mono">
                   {chat.isPending ? "building…" : "ready"}
                 </div>
               </div>
             </div>
-            <div className="text-[10px] text-muted-foreground font-mono">gemini-3-flash</div>
+            <div className="text-[10px] text-muted-foreground font-mono shrink-0">gemini-3-flash</div>
           </div>
 
           <div ref={chatScrollRef} className="flex-1 p-4 space-y-4 overflow-y-auto min-h-0">
@@ -465,7 +504,7 @@ function Workspace() {
                 <span className={`text-[10px] uppercase font-bold ml-0.5 ${m.role === "user" ? "text-muted-foreground" : "text-accent"}`}>
                   {m.role === "user" ? "You" : "Architect"}
                 </span>
-                <div className={`p-2.5 rounded-lg text-xs leading-relaxed whitespace-pre-wrap ${
+                <div className={`p-2.5 rounded-lg text-xs leading-relaxed whitespace-pre-wrap break-words ${
                   m.role === "user"
                     ? "bg-white/5 text-foreground/90"
                     : "bg-accent/5 border border-accent/20 text-foreground/90"
@@ -589,13 +628,22 @@ function Workspace() {
             </div>
           </div>
         </aside>
-        </ResizablePanel>
-        <ResizableHandle withHandle className="bg-border hover:bg-accent/40 transition-colors" />
-        <ResizablePanel defaultSize={72} minSize={45} className="min-w-[420px]">
-        {/* RIGHT — Preview / Code tabs */}
-        <section className="h-full flex flex-col min-w-0 min-h-0 bg-background overflow-hidden">
 
+        {/* Drag handle — vertical, double-click resets */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize chat panel"
+          onMouseDown={onDragStart}
+          onDoubleClick={resetChatWidth}
+          className="group relative w-1 shrink-0 bg-border hover:bg-accent/50 active:bg-accent transition-colors cursor-col-resize select-none"
+          title="Drag to resize · double-click to reset"
+        >
+          <div className="absolute inset-y-0 -left-1 -right-1" />
+        </div>
 
+        {/* RIGHT — Preview / Code / System tabs (fills remaining space) */}
+        <section className="flex-1 min-w-0 h-full flex flex-col bg-background overflow-hidden">
           <div className="h-11 border-b border-border flex items-center justify-between px-3 bg-surface/30 shrink-0">
             <div className="flex items-center gap-1 bg-black/30 rounded-md border border-border p-0.5">
               <button
@@ -613,6 +661,17 @@ function Workspace() {
                 }`}
               >
                 <Code2 className="size-3.5" /> Code
+              </button>
+              <button
+                onClick={() => setRightTab("system")}
+                className={`h-7 px-3 rounded text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                  rightTab === "system" ? "bg-accent/15 text-accent" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Terminal className="size-3.5" /> System
+                {logs.length > 0 && (
+                  <span className="text-[9px] font-mono px-1 rounded bg-accent/20 text-accent">{logs.length}</span>
+                )}
               </button>
             </div>
             {rightTab === "preview" ? (
@@ -648,14 +707,22 @@ function Workspace() {
                   <RefreshCw className="size-3.5" />
                 </button>
               </div>
-            ) : (
-              <span className="text-[10px] text-muted-foreground font-mono">
+            ) : rightTab === "code" ? (
+              <span className="text-[10px] text-muted-foreground font-mono truncate">
                 {activeFile ? activeFile.path : "no file selected"}
               </span>
+            ) : (
+              <button
+                className="text-[10px] text-muted-foreground hover:text-foreground font-mono"
+                onClick={() => setLogs([])}
+              >
+                clear logs
+              </button>
             )}
           </div>
 
-          {rightTab === "preview" ? (
+          {/* Render all three so iframe stays mounted; hide inactive with CSS */}
+          <div className={`flex-1 min-h-0 ${rightTab === "preview" ? "flex flex-col" : "hidden"}`}>
             <PreviewSurface
               preview={preview}
               previewKey={previewKey}
@@ -671,150 +738,169 @@ function Workspace() {
                 return base === "index" ? "/" : `/${base}`;
               })()}
             />
-          ) : (
-            <div className="flex-1 flex min-h-0">
-              {/* File tree */}
-              <aside className="w-56 min-w-[14rem] border-r border-border bg-surface flex flex-col shrink-0 overflow-hidden">
-                <div className="p-3 flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
-                    Explorer · {files.length}
-                  </span>
-                  <button
-                    className="text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowNew((s) => !s)}
-                    aria-label="New file"
-                  >
-                    <FilePlus2 className="size-3.5" />
-                  </button>
+          </div>
+
+          <div className={`flex-1 min-h-0 ${rightTab === "code" ? "flex" : "hidden"}`}>
+            {/* File tree */}
+            <aside className="w-56 min-w-[14rem] border-r border-border bg-surface flex flex-col shrink-0 overflow-hidden">
+              <div className="p-3 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+                  Explorer · {files.length}
+                </span>
+                <button
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowNew((s) => !s)}
+                  aria-label="New file"
+                >
+                  <FilePlus2 className="size-3.5" />
+                </button>
+              </div>
+              {showNew && (
+                <div className="px-2 pb-2">
+                  <Input
+                    autoFocus
+                    placeholder="path/to/file.css"
+                    value={newPath}
+                    onChange={(e) => setNewPath(e.target.value)}
+                    className="h-7 text-xs"
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter" && newPath.trim()) {
+                        await save.mutateAsync({ path: newPath.trim(), content: "" });
+                        setActivePath(newPath.trim());
+                        setNewPath("");
+                        setShowNew(false);
+                      } else if (e.key === "Escape") {
+                        setShowNew(false);
+                        setNewPath("");
+                      }
+                    }}
+                  />
                 </div>
-                {showNew && (
-                  <div className="px-2 pb-2">
-                    <Input
-                      autoFocus
-                      placeholder="path/to/file.css"
-                      value={newPath}
-                      onChange={(e) => setNewPath(e.target.value)}
-                      className="h-7 text-xs"
-                      onKeyDown={async (e) => {
-                        if (e.key === "Enter" && newPath.trim()) {
-                          await save.mutateAsync({ path: newPath.trim(), content: "" });
-                          setActivePath(newPath.trim());
-                          setNewPath("");
-                          setShowNew(false);
-                        } else if (e.key === "Escape") {
-                          setShowNew(false);
-                          setNewPath("");
-                        }
-                      }}
-                    />
+              )}
+              <div className="flex-1 overflow-y-auto px-2 space-y-0.5">
+                {files.length === 0 ? (
+                  <div className="px-2 py-4 text-xs text-muted-foreground">No files yet.</div>
+                ) : (
+                  files.map((f) => (
+                    <div
+                      key={f.id}
+                      className={`group flex items-center justify-between px-2 py-1.5 rounded text-sm cursor-pointer ${
+                        f.path === activePath
+                          ? "bg-accent/10 text-accent"
+                          : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                      }`}
+                      onClick={() => setActivePath(f.path)}
+                    >
+                      <span className="flex items-center gap-2 truncate">
+                        <FileCode2 className="size-3.5 opacity-60 shrink-0" />
+                        <span className="truncate font-mono text-xs">{f.path}</span>
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Delete ${f.path}?`)) del.mutate(f.path);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="size-3" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </aside>
+
+            {/* Editor */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="h-8 border-b border-border flex items-center justify-end px-3 bg-surface/30 shrink-0">
+                {activeFile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-6"
+                    disabled={save.isPending || draft === activeFile.content}
+                    onClick={() => save.mutate({ path: activeFile.path, content: draft })}
+                  >
+                    {save.isPending ? <Loader2 className="size-3 animate-spin" /> : "Save"}
+                  </Button>
+                )}
+              </div>
+              <div className="flex-1 min-h-0">
+                {activeFile ? (
+                  <Editor
+                    height="100%"
+                    language={languageFor(activeFile.path)}
+                    value={draft}
+                    theme="vs-dark"
+                    onChange={(v) => setDraft(v ?? "")}
+                    options={{
+                      fontFamily: "JetBrains Mono, ui-monospace, monospace",
+                      fontSize: 13,
+                      minimap: { enabled: false },
+                      scrollBeyondLastLine: false,
+                      tabSize: 2,
+                    }}
+                  />
+                ) : (
+                  <div className="h-full grid place-items-center text-sm text-muted-foreground">
+                    Select a file or ask the AI to generate one
                   </div>
                 )}
-                <div className="flex-1 overflow-y-auto px-2 space-y-0.5">
-                  {files.length === 0 ? (
-                    <div className="px-2 py-4 text-xs text-muted-foreground">No files yet.</div>
-                  ) : (
-                    files.map((f) => (
-                      <div
-                        key={f.id}
-                        className={`group flex items-center justify-between px-2 py-1.5 rounded text-sm cursor-pointer ${
-                          f.path === activePath
-                            ? "bg-accent/10 text-accent"
-                            : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                        }`}
-                        onClick={() => setActivePath(f.path)}
-                      >
-                        <span className="flex items-center gap-2 truncate">
-                          <FileCode2 className="size-3.5 opacity-60 shrink-0" />
-                          <span className="truncate font-mono text-xs">{f.path}</span>
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm(`Delete ${f.path}?`)) del.mutate(f.path);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="size-3" />
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </aside>
-
-              {/* Editor + console */}
-              <div className="flex-1 flex flex-col min-w-0">
-                <div className="h-8 border-b border-border flex items-center justify-end px-3 bg-surface/30 shrink-0">
-                  {activeFile && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs h-6"
-                      disabled={save.isPending || draft === activeFile.content}
-                      onClick={() => save.mutate({ path: activeFile.path, content: draft })}
-                    >
-                      {save.isPending ? <Loader2 className="size-3 animate-spin" /> : "Save"}
-                    </Button>
-                  )}
-                </div>
-                <div className="flex-1 min-h-0">
-                  {activeFile ? (
-                    <Editor
-                      height="100%"
-                      language={languageFor(activeFile.path)}
-                      value={draft}
-                      theme="vs-dark"
-                      onChange={(v) => setDraft(v ?? "")}
-                      options={{
-                        fontFamily: "JetBrains Mono, ui-monospace, monospace",
-                        fontSize: 13,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        tabSize: 2,
-                      }}
-                    />
-                  ) : (
-                    <div className="h-full grid place-items-center text-sm text-muted-foreground">
-                      Select a file or ask the AI to generate one
-                    </div>
-                  )}
-                </div>
-                <div className="h-40 border-t border-border bg-surface flex flex-col shrink-0">
-                  <div className="h-8 border-b border-border flex items-center justify-between px-3 shrink-0">
-                    <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
-                      Runtime Console · {logs.length}
-                    </span>
-                    <button className="text-[10px] text-muted-foreground hover:text-foreground" onClick={() => setLogs([])}>
-                      clear
-                    </button>
-                  </div>
-                  <div className="flex-1 p-3 font-mono text-[11px] overflow-y-auto space-y-0.5">
-                    {logs.length === 0 && (
-                      <div className="text-muted-foreground">$ preview logs and errors stream here.</div>
-                    )}
-                    {logs.map((l, i) => (
-                      <div
-                        key={i}
-                        className={
-                          l.level === "error"
-                            ? "text-destructive whitespace-pre-wrap"
-                            : l.level === "warn"
-                              ? "text-yellow-400"
-                              : "text-foreground/80"
-                        }
-                      >
-                        <span className="text-muted-foreground">[{new Date(l.ts).toLocaleTimeString()}]</span>{" "}
-                        <span className="text-muted-foreground">{l.level}</span> {l.text}
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* System tab — engineering status, runtime console, file changes */}
+          <div className={`flex-1 min-h-0 ${rightTab === "system" ? "flex flex-col" : "hidden"}`}>
+            <div className="p-4 grid grid-cols-2 gap-3 border-b border-border shrink-0">
+              <div className="rounded-lg border border-border bg-surface p-3">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Runtime</div>
+                <div className={`text-sm font-mono ${lastError ? "text-destructive" : "text-signal"}`}>
+                  {lastError ? "error" : chat.isPending ? "compiling" : "healthy"}
+                </div>
+              </div>
+              <div className="rounded-lg border border-border bg-surface p-3">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Files</div>
+                <div className="text-sm font-mono text-foreground">{files.length}</div>
+              </div>
+              <div className="rounded-lg border border-border bg-surface p-3">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Messages</div>
+                <div className="text-sm font-mono text-foreground">{messages.length}</div>
+              </div>
+              <div className="rounded-lg border border-border bg-surface p-3">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-1">Model</div>
+                <div className="text-sm font-mono text-accent">gemini-3-flash</div>
+              </div>
+            </div>
+            <div className="flex-1 min-h-0 flex flex-col">
+              <div className="h-8 border-b border-border flex items-center justify-between px-3 shrink-0 bg-surface/30">
+                <span className="text-[10px] uppercase tracking-tighter text-muted-foreground font-bold">
+                  Runtime Console · {logs.length}
+                </span>
+              </div>
+              <div className="flex-1 p-3 font-mono text-[11px] overflow-y-auto space-y-0.5 bg-background">
+                {logs.length === 0 && (
+                  <div className="text-muted-foreground">$ preview logs and errors stream here.</div>
+                )}
+                {logs.map((l, i) => (
+                  <div
+                    key={i}
+                    className={
+                      l.level === "error"
+                        ? "text-destructive whitespace-pre-wrap"
+                        : l.level === "warn"
+                          ? "text-yellow-400"
+                          : "text-foreground/80"
+                    }
+                  >
+                    <span className="text-muted-foreground">[{new Date(l.ts).toLocaleTimeString()}]</span>{" "}
+                    <span className="text-muted-foreground">{l.level}</span> {l.text}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
-        </ResizablePanel>
-        </ResizablePanelGroup>
       </main>
 
     </div>
@@ -891,7 +977,7 @@ function PreviewSurface({
               key={previewKey}
               title="preview"
               srcDoc={preview}
-              sandbox="allow-scripts allow-modals allow-same-origin"
+              sandbox="allow-scripts allow-modals"
               className="w-full h-full border-0 bg-white"
             />
             {isGenerating && (
