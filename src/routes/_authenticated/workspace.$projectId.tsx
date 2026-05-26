@@ -293,8 +293,53 @@ function Workspace() {
 
   const [newPath, setNewPath] = useState("");
   const [showNew, setShowNew] = useState(false);
-  const [rightTab, setRightTab] = useState<"preview" | "code">("preview");
+  const [rightTab, setRightTab] = useState<"preview" | "code" | "system">("preview");
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
+
+  // Pixel-based chat panel width persisted to localStorage.
+  const CHAT_KEY = "lumina-chat-panel-width";
+  const CHAT_DEFAULT = 380;
+  const CHAT_MIN = 300;
+  const CHAT_MAX = 560;
+  const [chatWidth, setChatWidth] = useState<number>(CHAT_DEFAULT);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CHAT_KEY);
+      if (raw) {
+        const n = parseInt(raw, 10);
+        if (!Number.isNaN(n)) setChatWidth(Math.min(CHAT_MAX, Math.max(CHAT_MIN, n)));
+      }
+    } catch { /* ignore */ }
+  }, []);
+  const draggingRef = useRef(false);
+  const onDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    draggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    const onMove = (ev: MouseEvent) => {
+      if (!draggingRef.current) return;
+      const next = Math.min(CHAT_MAX, Math.max(CHAT_MIN, ev.clientX));
+      setChatWidth(next);
+    };
+    const onUp = () => {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      try { localStorage.setItem(CHAT_KEY, String(chatWidthRef.current)); } catch { /* ignore */ }
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, []);
+  const chatWidthRef = useRef(chatWidth);
+  useEffect(() => { chatWidthRef.current = chatWidth; }, [chatWidth]);
+  const resetChatWidth = useCallback(() => {
+    setChatWidth(CHAT_DEFAULT);
+    try { localStorage.setItem(CHAT_KEY, String(CHAT_DEFAULT)); } catch { /* ignore */ }
+  }, []);
 
   const preview = useMemo(() => buildPreview(files), [files]);
   const [previewKey, setPreviewKey] = useState(0);
