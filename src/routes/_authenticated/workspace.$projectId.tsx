@@ -977,7 +977,7 @@ function PreviewSurface({
               key={previewKey}
               title="preview"
               srcDoc={preview}
-              sandbox="allow-scripts allow-modals allow-same-origin"
+              sandbox="allow-scripts allow-modals"
               className="w-full h-full border-0 bg-white"
             />
             {isGenerating && (
