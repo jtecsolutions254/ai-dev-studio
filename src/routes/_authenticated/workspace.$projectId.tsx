@@ -405,8 +405,34 @@ function Workspace() {
       {/* Top nav */}
       <nav className="h-11 border-b border-border flex items-center justify-between px-3 bg-surface/60 backdrop-blur-md z-30 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/dashboard" })}>
-            <ArrowLeft className="size-4" />
+          <div className="flex items-center gap-0.5 rounded-md border border-border bg-black/20 p-0.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              title="Back"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              title="Forward"
+              onClick={() => window.history.forward()}
+            >
+              <ArrowLeft className="size-4 rotate-180" />
+            </Button>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            title="Dashboard"
+            onClick={() => navigate({ to: "/dashboard" })}
+          >
+            Dashboard
           </Button>
           <Link to="/" className="flex items-center gap-2">
             <LuminaWordmark />
